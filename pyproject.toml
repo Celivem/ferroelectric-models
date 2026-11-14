@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fe-models"
+version = "0.1.0"
+description = "Standard ferroelectric switching and hysteresis models (Landau-Khalatnikov, Preisach/FORC, KAI/NLS/Merz, PUND) for HfO2-type thin films"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Celivem" }]
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "matplotlib"]
+keywords = ["ferroelectric", "HfO2", "hysteresis", "Preisach", "FORC", "Landau", "switching kinetics", "PUND"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
