@@ -1,0 +1,44 @@
+# Fengler F.P.G., Hoffmann M., Slesazeck S., Mikolajick T., Schroeder U., "On the relationship between field
+#   cycling and imprint in ferroelectric Hf0.5Zr0.5O2", J. Appl. Phys. 123, 204101 (2018). DOI 10.1063/1.5026424
+#   Read from the self-archived published version, page 204101-3, Fig. 3(a).
+# Device: TiN/Hf0.5Zr0.5O2 (10 nm, ALD 260 C, Hf:Zr 1:1)/TiN, 600 C 20 s N2 RTA; Ti/Pt contacts, TiN etched (SC1).
+#   Capacitor area not stated in the text read.
+# Preconditioning: 1e6 cycles at RT, 100 kHz, 3 MV/cm (wake-up); then heated to the test temperature and cycled
+#   again 1e4 cycles to reset imprint; directly after cycling a P-V loop, then another after delay t.
+#   Set state: the state left by the cycling / first loop; text: shift to more negative voltage is typical of the
+#   POSITIVE polarization state (all data here are negative shifts).
+# Storage/measurement temperature: 25, 50, 75, 100, 125 C, measured in situ (no cool-down).
+# Vc measurement: P-V hysteresis (aixACCT TF3000), imprint = difference of coercive voltage between the loop
+#   right after cycling and the loop after delay t. (Loop frequency for this experiment not stated in the text read;
+#   Fig. 2 used 10 kHz.)
+# Note: y = shift relative to the first loop measured right after cycling, so y(t) is NOT zero at t = 1 min;
+#   reference time t=0 is the end of the reset cycling. Lines in the figure are the authors' linear fits in log t.
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: time +-0.01 decade (marker centre +-2 px at 347.75 px/decade);
+#   voltage +-0.001 V (marker centre +-2 px at 3000 px/V); partly occluded triangles +-0.002 V.
+T_label,T_C,t_min,t_s,dV_shift_V,px_x,px_y
+25C,25,1,60,-0.0810,1612.0,474.0
+25C,25,3,180.1,-0.1050,1778.0,546.0
+25C,25,7.01,420.3,-0.1210,1906.0,594.0
+25C,25,10,601,-0.1300,1960.0,621.0
+25C,25,19.9,1197,-0.1420,2064.0,657.0
+50C,50,0.997,59.8,-0.1063,1611.5,550.0
+50C,50,9.98,599,-0.1582,1959.5,705.5
+50C,50,30,1798,-0.1960,2125.5,819.0
+75C,75,1,60,-0.1343,1612.0,634.0
+75C,75,3,180.1,-0.1502,1778.0,681.5
+75C,75,10,601,-0.1798,1960.0,770.5
+75C,75,30,1798,-0.2162,2125.5,879.5
+75C,75,60.1,3604,-0.2362,2230.5,939.5
+100C,100,0.984,59.01,-0.1473,1609.5,673.0
+100C,100,3.99,239.4,-0.1813,1821.0,775.0
+100C,100,9.95,597,-0.2088,1959.0,857.5
+100C,100,30.4,1822,-0.2365,2127.5,940.5
+125C,125,0.99,59.41,-0.1675,1610.5,733.5
+125C,125,3.02,181.3,-0.1978,1779.0,824.5
+# Reader's per-temperature linear fits dV = a + b*log10(t/1 min) to the digitized points:
+#   25C: a = -0.0816 V, b = -0.0471 V/decade (V0 = -b/ln10 = 0.0205 V), dV(10 min) = -0.1288 V
+#   50C: a = -0.1046 V, b = -0.0593 V/decade (V0 = -b/ln10 = 0.0258 V), dV(10 min) = -0.1639 V
+#   75C: a = -0.1276 V, b = -0.0588 V/decade (V0 = -b/ln10 = 0.0256 V), dV(10 min) = -0.1865 V
+#   100C: a = -0.1470 V, b = -0.0605 V/decade (V0 = -b/ln10 = 0.0263 V), dV(10 min) = -0.2075 V
+#   125C: a = -0.1678 V, b = -0.0626 V/decade (V0 = -b/ln10 = 0.0272 V), dV(10 min) = -0.2304 V

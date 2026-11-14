@@ -1,0 +1,167 @@
+{
+ "wakeup_temperature_fengler2017": {
+  "data": "Fig. 7a, 2Pr at 7 cycle counts x 5 temperatures (35 points), digitizing uncertainty +-0.3 uC/cm2",
+  "fit A (6 parameters: ps, tc_ps, wk_fp, wk_nw, wk_kw, wk_ea)": {
+   "ps [C/m^2]": 0.16940377134011256,
+   "tc_ps [1/K]": 0.001589160698011524,
+   "wk_fp": 0.481892655350328,
+   "wk_nw [cycles]": 480.896650763544,
+   "wk_kw": 0.2962817656134189,
+   "wk_ea [eV]": 6.72726900879015e-17,
+   "RMS [uC/cm2]": 0.46002195511128174
+  },
+  "fit B (tc_ps = 0, Arrhenius only; 5 parameters)": {
+   "ps [C/m^2]": 0.19273295097082643,
+   "tc_ps [1/K]": 0.0,
+   "wk_fp": 0.4969252580340331,
+   "wk_nw [cycles]": 5524.870508304807,
+   "wk_kw": 0.23439549269390877,
+   "wk_ea [eV]": 0.3230464004952879,
+   "RMS [uC/cm2]": 0.828967346391762
+  },
+  "2Ec, Fig. 7c (18 points, +-0.005 MV/cm)": {
+   "read-out assumption": "10 kHz triangle at +-2.3 MV/cm (frequency from the paper's Fig. 2, amplitude assumed)",
+   "with split: wk_vsp [V], mul_ea": [
+    0.0022915644935987928,
+    0.5476275694749911
+   ],
+   "RMS [MV/cm]": 0.10763300843778474,
+   "without split (wk_vsp = 0): mul_ea": 0.5476283812524536,
+   "RMS without split [MV/cm]": 0.10763376690326898,
+   "data range [MV/cm]": [
+    1.671,
+    2.047
+   ]
+  }
+ },
+ "wakeup_fatigue_pesic2016": {
+  "data": "Fig. 1a, 2Pr = |Pr+| + |Pr-| at 11 cycle counts (pristine included), +-0.4 uC/cm2",
+  "fit (7 parameters)": {
+   "ps [C/m^2]": 0.1791993646872084,
+   "wk_fp": 0.5256447163627754,
+   "wk_nw [cycles]": 2.3545094345882083,
+   "wk_kw": 0.22038345141560114,
+   "fat_d": 0.2193403149016573,
+   "fat_tf [s at 1 MV/cm]": 3449.2893762139915,
+   "fat_kf": 0.999999999999994,
+   "fat_nf (fixed)": 4.0
+  },
+  "RMS [uC/cm2]": 0.35364441618750325,
+  "note": "one cycling condition: the field exponent and the choice of driver are not identifiable from it; wk_kw bounded below by 0.15 (without the bound the fit runs to 0.05 to follow the first-cycle jump); fat_kf bounded above by 1 (a distribution of rates; free, it runs to a cliff-like onset)"
+ },
+ "two_fields_park2020": {
+  "data": "Fig. 5e TDMA-HZO, 2Pr read at the cycling field, 2.5 and 3.0 MV/cm (53 points; the curves are traces of markers and connecting lines); thickness 10 nm assumed; wk_kw = fat_kf = 0.5 fixed",
+  "pinning only (fat_ke = 0), 7 parameters": {
+   "ps": 0.16323507796561493,
+   "mul_ea": 1.3562791047944418,
+   "wk_fp": 0.11187786332177266,
+   "wk_nw": 1.1708702632950134,
+   "fat_d": 0.22833235294395507,
+   "fat_tf [s]": 3708.5402362671985,
+   "fat_nf": 1.2141061878934649e-11,
+   "RMS [uC/cm2]": 0.29435256356853545
+  },
+  "pinning + activation-field increase, 8 parameters": {
+   "ps": 0.16318019099948863,
+   "mul_ea": 1.354868700280276,
+   "wk_fp": 0.11194147664832348,
+   "wk_nw": 202.9027606728462,
+   "fat_d": 0.07757862629543004,
+   "fat_tf [s]": 510371.697903815,
+   "fat_nf": 5.936666443785863,
+   "fat_ke": 1.43616882315344,
+   "RMS [uC/cm2]": 0.2930589659971229
+  }
+ },
+ "pulse_width_lenox2023": {
+  "data": "Fig. 5a, Pr normalized to pristine at 1e4 and 1e5 cycles for 2-50 us pulses (9 points)",
+  "law": "1 + A {1 - exp[-(N (w/2 us)^m / N_0)^kappa]}; m = 0: switching-count driver (this model), m = 1: field-time driver",
+  "free m": {
+   "m": 2.4299522909527265,
+   "m std": 0.23459707921473716,
+   "kappa": 0.2419484315203358,
+   "RMS": 0.005546728249510785
+  },
+  "RMS with m = 0": 0.0613778823717831,
+  "RMS with m = 1": 0.027832524088846646
+ },
+ "read_endurance_mukherjee2023": {
+  "approach": "late drop relative to each curve's value at 1e6 reads (7 ratio points at 1e8, 1e10, 1e11 reads plus the 1e6 anchors); read period 1.5 us, read pulse 1 us (as in literature_comparison.py)",
+  "data drop 1e6 -> last point": {
+   "-0.1 V": 0.8641975308641976,
+   "-0.3 V": 0.8636363636363636,
+   "-0.5 V": 0.8333333333333334
+  },
+  "(a) read-stress fatigue, 4 parameters (D_max, t_F, kappa_F, n_F)": {
+   "fat_d": 0.15704569712677804,
+   "fat_tf [s at 1 MV/cm]": 717.3555730867225,
+   "fat_kf": 0.38909528385942777,
+   "fat_nf": 1.524433312883548,
+   "n_F * kappa_F": 0.593149812601192,
+   "RMS of the ratio": 0.02133800444546123
+  },
+  "(a') same with n_F = 4 fixed (field-driven injection)": {
+   "RMS of the ratio": 0.023503023212297244
+  },
+  "(b) imprint growing during the sequence, 2 parameters (V_I, tau_I1; tau_I2 = 1e9 s)": {
+   "imp_v [V]": 0.8698910193796331,
+   "imp_t1 [s]": 8.573050563390156,
+   "V0 per e-fold [V]": 0.046832181722710954,
+   "shift at 1e11 reads (1.5e5 s) [V]": 0.48464893590158886,
+   "RMS of the ratio": 0.030092356767892618
+  }
+ },
+ "imprint_buragohain2019": {
+  "data": "Fig. 2c, V_shift vs delay after a 5 ms, +-6 V set pulse, both polarities (18 points, +-0.02 V)",
+  "model": "V_b + -V_I sigma_I(t + 5 ms), sigma_I from 12 log-spaced states, imp_t2 = 1e9 s (beyond the data)",
+  "fit (V_b, imp_v, imp_t1), 3 parameters": {
+   "V_b [V]": 0.005995813542826775,
+   "imp_v [V]": 2.8436329950030754,
+   "imp_t1 [s]": 0.16269143358513327,
+   "V0 = imp_v / ln(t2/t1) [V]": 0.12616407483545639,
+   "RMS [V]": 0.07546538195291554
+  },
+  "sensitivity to imp_t2": {
+   "1e+06": {
+    "RMS [V]": 0.07615612021355969,
+    "imp_v [V]": 1.986005823087981,
+    "imp_t1 [s]": 0.18341401933583953,
+    "V0 per e-fold [V]": 0.12803425091384124
+   },
+   "1e+12": {
+    "RMS [V]": 0.07611156306468772,
+    "imp_v [V]": 3.755685402531206,
+    "imp_t1 [s]": 0.18256915095015905,
+    "V0 per e-fold [V]": 0.1280420889191624
+   }
+  },
+  "authors' form V_b + -V0 ln(1 + t/tau0), 3 parameters": {
+   "V0 [V]": 0.12896606252411136,
+   "tau0 [s]": 0.11347231312170071,
+   "RMS [V]": 0.07217656706879497
+  }
+ },
+ "imprint_temperature_fengler2018": {
+  "data": "Fig. 3a, imprint shift relative to the loop right after the reset cycling, 1-60 min, 25-125 C (19 points, +-0.002 V)",
+  "model": "-V_I [sigma_I(t) - sigma_I(t_ref)], 12 states, imp_t2 = 1e9 s, Arrhenius time constants",
+  "fit (imp_v, imp_t1, imp_ea, t_ref), 4 parameters": {
+   "imp_v [V]": 0.47326829819122934,
+   "imp_t1 at 25 C [s]": 5.187458722835992,
+   "imp_ea [eV]": 0.3962167793652111,
+   "t_ref [s]": 0.014305430107665369,
+   "V0 per e-fold [V]": 0.02480829033284431,
+   "RMS [V]": 0.0042623611111053655
+  },
+  "same with imp_ea = 0 (3 parameters)": {
+   "RMS [V]": 0.03219956882718049
+  },
+  "paper": "activation energy of the 10-min shift 0.099 +- 0.010 eV (0.079 without 25 C)"
+ },
+ "cycle_average_check": {
+  "W": 0.0007955687147356283,
+  "D": 3.6914915568786455e-15,
+  "s_i": 0.012632460372826393,
+  "max |dP| difference, periods >= 1 [uC/cm2]": 0.3662556361335305,
+  "seconds for 1e12 cycles": 0.11
+ }
+}

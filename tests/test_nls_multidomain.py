@@ -388,8 +388,8 @@ class TestSpiceFilesInSync(unittest.TestCase):
         va = (ROOT / "spice" / "fecap_nls.va").read_text(encoding="utf-8")
         found = dict(re.findall(r"parameter real (\w+)\s*=\s*([-+0-9.eE]+)", va))
         for name, prm in nm.GENERIC.items():
-            if prm.va_name == "FE_ND":
-                self.assertIn(f"`define FE_ND {prm.value}", va)
+            if prm.va_name in ("FE_ND", "FE_NI"):
+                self.assertIn(f"`define {prm.va_name} {prm.value}", va)
                 continue
             self.assertIn(prm.va_name, found, name)
             self.assertAlmostEqual(float(found[prm.va_name]), prm.value, delta=1e-12 * max(1.0, abs(prm.value)),
@@ -397,11 +397,13 @@ class TestSpiceFilesInSync(unittest.TestCase):
 
     def test_reference_constants_match_verilog_a(self):
         va = (ROOT / "spice" / "fecap_nls.va").read_text(encoding="utf-8")
-        for token in ("pow(60.0", "abs(vimp) + 0.1", "/ 0.1;", "/ 0.01)", "/ 1.0e-10", "min(hu, 6.0) / 5.0",
-                      "max(hu, 1.0e-6)", "min(2.0 * `FE_BS"):
+        for token in ("pow(60.0", "abs(vimpe) + 0.1", "/ 0.1;", "/ 0.01)", "/ 1.0e-10", "min(hu, 6.0) / 5.0",
+                      "max(hu, 1.0e-6)", "min(2.0 * `FE_BS", "+ 1.0e-4, wk_kw)", "+ 1.0e-4, fat_kf)",
+                      "/ (tfe * tfe) + 1.0e6)", "pow(efl / 1.0e8, fat_nf)"):
             self.assertIn(token, va)
         self.assertEqual((nm.X_MAX, nm.U_XM, nm.V_GATE, nm.U_XW, nm.TAU_X, nm.H_CLIP, nm.H_MAX, nm.H_S),
                          (60.0, 0.1, 0.1, 0.01, 1e-10, 6.0, 5.0, 1e-6))
+        self.assertEqual((nm.A_EPS, nm.E_FLOOR**2, nm.E_REF), (1e-4, 1e6, 1e8))
         self.assertAlmostEqual(float(re.search(r"`define FE_BS ([0-9.eE+-]+)", va).group(1)),
                                float(np.sqrt(nm.Q_E / (4 * np.pi * nm.EPS0))), delta=1e-13)
 

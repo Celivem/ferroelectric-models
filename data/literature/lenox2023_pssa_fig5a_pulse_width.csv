@@ -1,0 +1,20 @@
+# Source: M. K. Lenox, S. T. Jaszewski, S. S. Fields, N. Shukla, J. F. Ihlefeld, "Impact of Electric Field Pulse Duration on Ferroelectric Hafnium Zirconium Oxide Thin Film Capacitor Endurance", phys. status solidi (a) (2023), DOI: 10.1002/pssa.202300566. Read: accepted-manuscript version, full text.
+# Figure 5(a) (manuscript p. 10): PUND remanent polarization normalized to the pristine value vs cycles, for five pulse durations. The legend reads 'Effective Duty Cycle 2/5/10/20/50 %' but per text/Table 1 these are pulse durations 2/5/10/20/49.98 us = EDC 4/10/20/40/100 %; series are named by pulse width and text EDC.
+# Device: Pt/W(50 nm) / 9.7-10 nm Hf0.5Zr0.5O2 (PE-ALD, TEMA-Hf/Zr, 260 C) / W(100 nm) on Si; RTA 600 C, 30 s, N2. Pads 100 um diameter for cycling.
+# Cycling waveform: bipolar pulse train, 10 kHz (100 us period), 4 Vpp = +/-2 MV/cm, 20 ns rise/fall; pulse width per polarity as series label, remainder of period at 0 V. Room temperature.
+# Pr measurement: PUND at 2.5 MV/cm max field, at log-spaced cycle intervals; normalized to pristine.
+# Only the 1e4 and 1e5 points are digitized: at N = 1 all series are 1.00 by normalization, and at 10-1000 cycles the five markers overlap within ~0.03 (all ~1.02-1.09) in this 96-dpi raster and cannot be separated reliably.
+# Values stated in the TEXT (not digitized): PUND Pr at 1e6 cycles increased by 7, 15, 18, 25, 30 % for EDC 4, 10, 20, 40, 100 %. Leakage (+50 % at 2.5 MV/cm) onset at 1e8, 1e7, 3e6, 2e6, 1e6 cycles for EDC 4,10,20,40,100 %; failure 2e8 cycles (2 us) vs ~3e6 (50 us square-like) and 1e7 (20 us).
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: +/-0.015 in normalized Pr (low-resolution raster, 191 px per unit); the 2 us marker at 1e4 is hidden under other markers and is not listed.
+# Axis calibration: x fit max residual 0.0057 (log10 units), y fit max residual 0.0014 (units); px/py are pixel coords in the native figure raster; crop offset (0, 75)
+series,cycles_digitized,cycles_nominal,Pr_norm_to_pristine,px,py,flag
+2us_EDC4pct,9.956e+04,100000,1.066,316.9,224.9,
+5us_EDC10pct,1.013e+04,10000,1.057,264.7,226.7,
+5us_EDC10pct,1e+05,100000,1.098,317.0,218.9,
+10us_EDC20pct,1.004e+04,10000,1.094,264.5,219.6,
+10us_EDC20pct,1.009e+05,100000,1.136,317.2,211.6,
+20us_EDC40pct,9956,10000,1.135,264.3,211.8,
+20us_EDC40pct,1.009e+05,100000,1.198,317.2,199.7,
+50us_EDC100pct,1.018e+04,10000,1.182,264.8,202.8,thin_star_low_area
+50us_EDC100pct,9.913e+04,100000,1.264,316.8,187.2,

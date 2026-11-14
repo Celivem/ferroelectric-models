@@ -1,0 +1,27 @@
+# Source: F. P. G. Fengler et al., "Domain Pinning: Comparison of Hafnia and PZT Based Ferroelectrics", Adv. Electron. Mater. 3, 1600505 (2017). DOI: 10.1002/aelm.201600505
+# Figure 7c (page 6 of 10; the caption letters c/d are swapped relative to the panels: the 2Ec-vs-cycles panel is labelled c in the image): 2Ec vs wake-up cycles at 25/50/75/100/125 C, with the authors' dashed linear-in-log(N) guides.
+# Device: TiN / 7 nm Hf0.5Zr0.5O2 / TiN (ALD, ~400 C anneal). Area not stated.
+# Cycling: as for Fig. 7a (2.3 MV/cm rectangular bipolar, 100 kHz per text for HZO; temperature = series label). 2Ec = width of the dynamic hysteresis (Ec+ - Ec-), measured with triangular 10 kHz P-V.
+# The authors fit 2Ec(N) per temperature and derive 'cycles to wake-up' -> Arrhenius EA = 0.54 +/- 0.01 eV (their Fig. 7d).
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: y +/-0.005 MV/cm (117.5 px per 0.1 MV/cm); x nominal 100, 1000, 5000, 10000. 25 C has data only at 5000 and 10000 cycles in the figure.
+# Axis calibration: x fit max residual 0.0000 (log10 units), y fit max residual 0.0002 (units); px/py are pixel coords in the native figure raster; crop offset (95, 770)
+series,cycles_digitized,cycles_nominal,2Ec_MV_cm,px,py,flag
+25C,5044,5000,1.767,863.6,1147.0,
+25C,1.001e+04,10000,1.795,975.6,1113.4,
+50C,100.9,100,1.671,224.0,1259.4,
+50C,986,1000,1.772,596.7,1140.8,
+50C,5001,5000,1.812,862.2,1093.9,
+50C,9994,10000,1.897,975.4,994.4,
+75C,99.88,100,1.705,222.3,1219.8,
+75C,984.8,1000,1.831,596.5,1071.2,
+75C,4998,5000,1.921,862.1,966.1,
+75C,9988,10000,1.962,975.3,917.0,
+100C,99.82,100,1.791,222.2,1119.0,
+100C,999.4,1000,1.886,598.9,1007.0,
+100C,5053,5000,1.976,863.9,901.7,
+100C,9988,10000,2.023,975.3,845.4,
+125C,101,100,1.832,224.1,1070.4,
+125C,987.2,1000,1.949,596.9,933.3,
+125C,5044,5000,2.008,863.6,864.0,
+125C,9982,10000,2.047,975.2,817.9,

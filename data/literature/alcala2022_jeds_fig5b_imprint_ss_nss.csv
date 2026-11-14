@@ -1,0 +1,69 @@
+# Alcala R., Materano M., Lomenzo P.D., Grenouillet L., Francois T., Coignus J., Vaxelaire N., Carabasse C.,
+#   Chevalliez S., Andrieu F., Mikolajick T., Schroeder U., "BEOL Integrated Ferroelectric HfO2-Based Capacitors
+#   for FeRAM: Extrapolation of Reliability Performance to Use Conditions", IEEE J. Electron Devices Soc. 10,
+#   907-912 (2022). DOI 10.1109/JEDS.2022.3198138 (CC-BY 4.0, open access). Fig. 5(b), p. 910.
+# Device: TiN/Si:HfO2 (1.5 % Si, 10 nm)/TiN MFM, BEOL 130 nm CMOS, 450 C thermal budget; array of 1290 capacitors
+#   in parallel, individual area 0.164 um2 (figure legend). Operation voltage 4 V (legend). Stored at 85 C (legend).
+# Preconditioning / set pulse / read waveform: not stated in the text read (PUND-type sequence with "two pulses of
+#   identical polarity" giving separate SS and NSS coercive fields; Fig.4 shows switching-current peaks).
+# Quantity: Imprint = (Ec+ + Ec-)/2 (Eq. 2), Ec = field of the switching-current maximum. SS = same state
+#   (read in the stored state), NSS = new same state (state re-written opposite, then read same); "+/-" = stored
+#   polarity. Authors' dotted lines = log-time extrapolations to 10 years (slopes = "imprint rate").
+# Error bars in the figure (spread over arrays) not digitized; marker centres only.
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: time +-0.02 decade (+-2 px at 84.8 px/decade); imprint +-0.01 MV/cm (+-2 px at
+#   322 px per MV/cm). Thickness 10 nm -> 0.1 MV/cm = 0.1 V of voltage shift.
+series,t_s,imprint_MV_cm,imprint_V_at_10nm,px_x,px_y
+SS+,0.1,0.4047,0.4047,335.5,1376.0
+SS+,304.3,0.5473,0.5473,631.0,1330.0
+SS+,677.7,0.6124,0.6124,660.5,1309.0
+SS+,1046,0.6744,0.6744,676.5,1289.0
+SS+,1850,0.6915,0.6915,697.5,1283.5
+SS+,2562,0.6930,0.6930,709.5,1283.0
+SS+,1.009e+04,0.7721,0.7721,760.0,1257.5
+SS+,2.505e+04,0.8202,0.8202,793.5,1242.0
+SS+,5.213e+04,0.8682,0.8682,820.5,1226.5
+SS+,8.971e+04,0.8682,0.8682,840.5,1226.5
+SS+,2.516e+05,0.9333,0.9333,878.5,1205.5
+SS+,6.87e+05,0.9659,0.9659,915.5,1195.0
+NSS+,0.1,0.2589,0.2589,335.5,1423.0
+NSS+,304.3,0.3550,0.3550,631.0,1392.0
+NSS+,677.7,0.3705,0.3705,660.5,1387.0
+NSS+,1046,0.3550,0.3550,676.5,1392.0
+NSS+,1850,0.3705,0.3705,697.5,1387.0
+NSS+,2562,0.3860,0.3860,709.5,1382.0
+NSS+,1.009e+04,0.4667,0.4667,760.0,1356.0
+NSS+,2.505e+04,0.5132,0.5132,793.5,1341.0
+NSS+,5.213e+04,0.4667,0.4667,820.5,1356.0
+NSS+,8.971e+04,0.5132,0.5132,840.5,1341.0
+NSS+,2.516e+05,0.5969,0.5969,878.5,1314.0
+NSS+,6.87e+05,0.6279,0.6279,915.5,1304.0
+NSS-,0.1,-0.1690,-0.1690,335.5,1561.0
+NSS-,304.3,-0.1814,-0.1814,631.0,1565.0
+NSS-,677.7,-0.2372,-0.2372,660.5,1583.0
+NSS-,1046,-0.2217,-0.2217,676.5,1578.0
+NSS-,1850,-0.2341,-0.2341,697.5,1582.0
+NSS-,2562,-0.2496,-0.2496,709.5,1587.0
+NSS-,1.009e+04,-0.2620,-0.2620,760.0,1591.0
+NSS-,2.505e+04,-0.3426,-0.3426,793.5,1617.0
+NSS-,5.213e+04,-0.3147,-0.3147,820.5,1608.0
+NSS-,8.971e+04,-0.3829,-0.3829,840.5,1630.0
+NSS-,2.516e+05,-0.4202,-0.4202,878.5,1642.0
+NSS-,6.87e+05,-0.4667,-0.4667,915.5,1657.0
+SS-,0.1,-0.3953,-0.3953,335.5,1634.0
+SS-,304.3,-0.4636,-0.4636,631.0,1656.0
+SS-,677.7,-0.5442,-0.5442,660.5,1682.0
+SS-,1046,-0.5457,-0.5457,676.5,1682.5
+SS-,1850,-0.5829,-0.5829,697.5,1694.5
+SS-,2562,-0.6093,-0.6093,709.5,1703.0
+SS-,1.009e+04,-0.6791,-0.6791,760.0,1725.5
+SS-,2.505e+04,-0.7380,-0.7380,793.5,1744.5
+SS-,5.213e+04,-0.7271,-0.7271,820.5,1741.0
+SS-,8.971e+04,-0.7953,-0.7953,840.5,1763.0
+SS-,2.516e+05,-0.8388,-0.8388,878.5,1777.0
+SS-,6.87e+05,-0.8574,-0.8574,915.5,1783.0
+# Reader's fits E = a + b*log10(t/s) for t >= 300 s (b = imprint rate, MV/cm per decade):
+#   SS+: a = 0.284 MV/cm, b = 0.1201 MV/cm/dec (n=11)
+#   NSS+: a = 0.115 MV/cm, b = 0.0848 MV/cm/dec (n=11)
+#   NSS-: a = 0.019 MV/cm, b = -0.0796 MV/cm/dec (n=11)
+#   SS-: a = -0.201 MV/cm, b = -0.1167 MV/cm/dec (n=11)

@@ -18,11 +18,16 @@
 //
 // Internal nodes (2*FE_ND + 2): s_k, h_k (k = 1..FE_ND), the low-pass voltage
 // y and the screening state sigma.  All of them are dimensionless except y
-// (volts).  Their equations are written as I(node) <+ FE_TC*(ddt(X) - f(X)),
+// (volts).  The cycling/storage history adds FE_NI + 4 nodes (E13-E17): the
+// pinned polarization pi, the frozen reversible charge r of the pinned pool
+// (C/m^2), the wake-up age a_w, the fatigue age a_F and the imprint states
+// sigma_j.  A history term that is off (the default) keeps its
+// nodes at exactly 0, so the default card behaves as without them.  Their equations are written as I(node) <+ FE_TC*(ddt(X) - f(X)),
 // i.e. dX/dt = f(X); FE_TC only scales the "current" of these nodes.
 //
 // Compile-time options
 //   FE_ND : number of domain classes (default 16), e.g. openvaf-r -D FE_ND=64
+//   FE_NI : number of imprint states (default 12)
 //
 // Defaults are the generic, literature-based card of spice/params/generic.inc.
 // They are not fitted to any particular device.
@@ -42,6 +47,9 @@
 `ifndef FE_ND
 `define FE_ND 16
 `endif
+`ifndef FE_NI
+`define FE_NI 12
+`endif
 // scale of the state-node "currents" (A per unit of dX/dt); numerical only
 `define FE_TC 1.0e-6
 // physical constants
@@ -53,6 +61,8 @@ inout p, n, qm;
 electrical p, n, qm;
 electrical [1:`FE_ND] sn, hn;
 electrical yn, gn;
+electrical pn, prn, awn, afn;
+electrical [1:`FE_NI] imn;
 
 // ---------------------------------------------------------------- geometry
 (*type="instance"*) parameter real area = 1.0e-10 from (0:inf);   // capacitor area [m^2]
@@ -60,6 +70,9 @@ parameter real tfe = 1.0e-8 from (0:inf);                          // ferroelect
 parameter real t0 = 298.15 from (0:inf);                           // reference temperature [K]
 (*type="instance"*) parameter real s0 = -1.0 from [-1:1];          // initial state of every class [1]
 (*type="instance"*) parameter real sg0 = 0.0 from [-1:1];          // initial screening state, sigma(0) = s0*sg0 [1]
+(*type="instance"*) parameter real nw0 = 0.0 from [0:inf);         // prior equivalent full switching cycles (wake-up history) [1]
+(*type="instance"*) parameter real af0 = 0.0 from [0:inf);         // prior fatigue age a_F (dimensionless) [1]
+(*type="instance"*) parameter real si0 = 0.0 from [-1:1];          // initial value of every imprint state sigma_j [1]
 
 // ------------------------------------------------- polarization, switching
 parameter real ps = 0.229 from [0:inf);        // saturation polarization Ps [C/m^2]
@@ -115,6 +128,24 @@ parameter real tc_c = 0.0;                     // linear temperature coefficient
 parameter real mul_ps = 1.0;                   // multiplier on Ps (variation / fatigue hook) [1]
 parameter real mul_ea = 1.0;                   // multiplier on the activation field (variation hook) [1]
 
+// ------------------------------- cycling and storage history (all off by default)
+parameter real wk_fp = 0.0 from [0:1);         // pristine pinned fraction f_p0, released by wake-up [1]
+parameter real wk_vsp = 0.0;                   // pristine internal-bias split +-V_sp on alternating classes [V]
+parameter real wk_nw = 1.0e3 from (0:inf);     // wake-up constant N_w in equivalent full switching cycles [1]
+parameter real wk_kw = 1.0 from (0:inf);       // stretch exponent kappa_w of the wake-up law [1]
+parameter real wk_ea = 0.0;                    // activation energy of the wake-up rate [eV]
+parameter real fat_d = 0.0 from [0:1);         // largest fraction D_max pinned by fatigue [1]
+parameter real fat_tf = 1.0 from [0:inf);      // field-time fatigue: stress time t_F at 1 MV/cm (0 = off) [s]
+parameter real fat_ns = 0.0 from [0:inf);      // switching fatigue: full cycles N_F switched at 1 MV/cm (0 = off) [1]
+parameter real fat_nf = 4.0 from [0:inf);      // field exponent n_F of both fatigue drivers [1]
+parameter real fat_ea = 0.0;                   // activation energy of both fatigue drivers [eV]
+parameter real fat_kf = 1.0 from (0:inf);      // stretch exponent kappa_F of the fatigue law [1]
+parameter real fat_ke = 0.0;                   // activation-field increase per unit damage k_E [1]
+parameter real imp_v = 0.0;                    // imprint bias V_I at full trapped-charge screening [V]
+parameter real imp_t1 = 1.0e-7 from (0:inf);   // shortest imprint time constant at t0 [s]
+parameter real imp_t2 = 1.0e5 from (0:inf);    // longest imprint time constant at t0 [s]
+parameter real imp_ea = 0.0;                   // activation energy of the imprint time constants [eV]
+
 // -------------------------------------------------- sampling and numerics
 parameter real y_max = 9.0 from (0:inf);       // depth of the logit quantile grid [1]
 parameter real grid_a = 1.5 from (0:inf);      // sinh stretching of the quantile grid [1]
@@ -124,6 +155,8 @@ genvar i;
 real kst, ux, v, tk, dtk, vth, vth0, te, tau, ptc, kc, zmin, relax, zv, x, sg, yv, rm;
 real yl, yh, ql, qh, qm_k, vp, vn, dl, phi, u, rp, rn, s, h, hu, hd, cu, cd, ru, rd, ds, dh;
 real gp, gm_, rev;
+real enw, enf, eni, aw, af, piv, gw, dgw, uw, gf, dgf, ef, dmg, ddm, fw, fpn, dfaw, dfaf, sI, vimpe, me, xt;
+real act, daw, daf, efl, fdot, fpin, frel, ratio, sgn, tauj, ar_i, vie, t2, fff, rtf, rns;
 real gu, gd, guy, gdy, gb, gmm, qt;
 real es, eroot, ar, jl, spf, phit, js, phib, jt, et;
 
@@ -149,12 +182,40 @@ analog begin
     ptc = ps * mul_ps * (1.0 + tc_ps * dtk);
     kc = 1.0 + tc_c * dtk;
 
+    // (E13-E17) cycling and storage history.  Each term is switched on by its
+    // amplitude parameter; when off, its nodes stay at exactly 0.
+    enw = 0.0; enf = 0.0; eni = 0.0;
+    if (wk_fp > 0.0 || wk_vsp != 0.0) enw = 1.0;
+    if (fat_d > 0.0) enf = 1.0;
+    if (imp_v != 0.0) eni = 1.0;
+    aw = V(awn);
+    af = V(afn);
+    piv = V(pn);
+    // stretched laws g(a) = (a + 1e-4)^kappa - 1e-4^kappa
+    gw = pow(max(aw, 0.0) + 1.0e-4, wk_kw) - pow(1.0e-4, wk_kw);
+    dgw = wk_kw * pow(max(aw, 0.0) + 1.0e-4, wk_kw - 1.0);
+    uw = exp(-gw);                               // unwoken fraction 1 - W (E14)
+    gf = pow(max(af, 0.0) + 1.0e-4, fat_kf) - pow(1.0e-4, fat_kf);
+    dgf = fat_kf * pow(max(af, 0.0) + 1.0e-4, fat_kf - 1.0);
+    ef = exp(-gf);
+    dmg = fat_d * (1.0 - ef);                    // fatigue damage D (E15)
+    ddm = fat_d * ef * dgf;
+    fw = wk_fp * uw;
+    fpn = 1.0 - (1.0 - fw) * (1.0 - dmg);        // pinned fraction f (E16)
+    dfaw = -(1.0 - dmg) * wk_fp * uw * dgw;
+    dfaf = (1.0 - fw) * ddm;
+    sI = 0.0;
+    for (i = 1; i <= `FE_NI; i = i + 1) sI = sI + V(imn[i]);
+    sI = eni * sI / `FE_NI;
+    vimpe = vimp - imp_v * sI;                   // dynamic imprint voltage (E17)
+    me = 1.0 + fat_ke * dmg;
+
     // rate cut-off: exp(-z^-alpha) < exp(-60) is treated as exactly 0
     zmin = pow(60.0, -1.0 / alpha);
     // reversal threshold u_x = |V_imp| + 0.1 V (holding at 0 V is not a reversal)
-    ux = abs(vimp) + 0.1;
+    ux = abs(vimpe) + 0.1;
     // gated relaxation of h:  1/tau_h_eff = 1 / (tau_h [1 + ((V - V_imp)/0.1 V)^4])
-    zv = (v - vimp) / 0.1;
+    zv = (v - vimpe) / 0.1;
     relax = 1.0 / (tau_h * (1.0 + zv * zv * zv * zv));
 
     // (E4, E5) logit quantile grid y_j = y_max sinh(a xi_j)/sinh(a), weights
@@ -169,16 +230,23 @@ analog begin
         if (i == `FE_ND) qh = 1.0;
         x = x + (qh - ql) * V(sn[i]);
     end
+    // total polarization state in units of Ps: switchable part plus pinned pool
+    xt = (1.0 - fpn) * x + piv;
 
     rm = 0.0;
+    act = 0.0;
     for (i = 1; i <= `FE_ND; i = i + 1) begin
         // (E4) activation voltage of class k from the Dagum quantile at the
         // mid-point q_k: E(q) = b [q^(-1/p) - 1]^(-1/a), times t_fe
         yl = y_max * sinh(grid_a * (2.0 * (i - 1) / `FE_ND - 1.0)) / sinh(grid_a);
         yh = y_max * sinh(grid_a * (2.0 * i / `FE_ND - 1.0)) / sinh(grid_a);
         qm_k = 1.0 / (1.0 + exp(-0.5 * (yl + yh)));
-        vp = emp * te * pow(pow(qm_k, -1.0 / pt) - 1.0, -1.0 / ap);
-        vn = emn * te * pow(pow(qm_k, -1.0 / pt) - 1.0, -1.0 / an);
+        ql = 1.0 / (1.0 + exp(-yl));
+        qh = 1.0 / (1.0 + exp(-yh));
+        if (i == 1) ql = 0.0;
+        if (i == `FE_ND) qh = 1.0;
+        vp = emp * te * me * pow(pow(qm_k, -1.0 / pt) - 1.0, -1.0 / ap);
+        vn = emn * te * me * pow(pow(qm_k, -1.0 / pt) - 1.0, -1.0 / an);
         // optional per-class offset delta_k = sb * logit(frac(k * golden ratio))
         dl = 0.0;
         if (sb > 0.0) begin
@@ -187,8 +255,12 @@ analog begin
             phi = min(max(phi, 1.0e-3), 1.0 - 1.0e-3);
             dl = sb * ln(phi / (1.0 - phi));
         end
+        // (E14) pristine internal-bias split: +V_sp on odd, -V_sp on even classes
+        sgn = 1.0;
+        if (i - 2 * floor(i / 2.0) < 0.5) sgn = -1.0;
+        dl = dl + sgn * wk_vsp * uw;
         // (E1) drive seen by class k
-        u = rho * v - vdep * (x - sg) - vimp - dl;
+        u = rho * v - vdep * (xt - sg) - vimpe - dl;
         // (E2) one-directional Merz-type rates R+ (u > 0) and R- (u < 0)
         rp = 0.0;
         rn = 0.0;
@@ -211,6 +283,7 @@ analog begin
             rd = beta * rn * hd / max(hd, 1.0e-6) * exp((beta - 1.0) * ln(max(hd, 1.0e-6)));
         end
         ds = ru * (1.0 - s) - rd * (1.0 + s);
+        act = act + (qh - ql) * abs(ds);
         // (E3b) progress variable: growth, saturation, gated relaxation and the
         // reset term G(u - u_x) h- - G(-u - u_x) h+ with G(z) = [1 + tanh(z/10 mV)]/2,
         // tau_x = 0.1 ns
@@ -221,30 +294,67 @@ analog begin
         // step-size guard: |dX| <= bnd per step; while a reset is in progress
         // keep dt <= bnd * 2 tau_x so a non-L-stable method cannot ring
         rm = max(rm, max(ru * (1.0 - s) + rd * (1.0 + s), abs(dh)));
-        if (gp * hd + gm_ * hu > 1.0e-9) rm = max(rm, bnd / 2.0e-10);
+        // (with the dynamic imprint on, gate tails below 1e-6 are not counted as a reset:
+        // the zero-field point then moves away from 0 V and h relaxes slowly there)
+        if (gp * hd + gm_ * hu > 1.0e-9 && (eni < 0.5 || max(gp, gm_) > 1.0e-6)) rm = max(rm, bnd / 2.0e-10);
         // ddt() is unconditional so its history at t = 0 comes from the DC solution
         I(sn[i]) <+ `FE_TC * (ddt(V(sn[i])) + kst * 1.0e3 * (V(sn[i]) - s0) - (1.0 - kst) * ds);
         I(hn[i]) <+ `FE_TC * (ddt(V(hn[i])) + kst * 1.0e3 * V(hn[i]) - (1.0 - kst) * dh);
+    end
+
+    // (E14, E15) wake-up and fatigue ages; (E13) pinned pool: pinning takes the
+    // mean state x with it, release returns the mean state pi/f of the pool to every class
+    daw = enw * act / (4.0 * wk_nw) * exp(-wk_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
+    efl = sqrt(rho * rho * v * v / (tfe * tfe) + 1.0e6);
+    fff = pow(efl / 1.0e8, fat_nf);
+    rtf = 0.0;
+    if (fat_tf > 0.0) rtf = 1.0 / fat_tf;
+    rns = 0.0;
+    if (fat_ns > 0.0) rns = act / (4.0 * fat_ns);
+    daf = enf * fff * (rtf + rns) * exp(-fat_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
+    fdot = dfaw * daw + dfaf * daf;
+    fpin = max(fdot, 0.0);
+    frel = max(-fdot, 0.0);
+    ratio = min(max(piv / max(fpn, 1.0e-12), -1.0), 1.0);
+    for (i = 1; i <= `FE_ND; i = i + 1)
+        I(sn[i]) <+ -`FE_TC * (1.0 - kst) * frel * (ratio - V(sn[i])) / (1.0 - fpn);
+    I(pn) <+ `FE_TC * (ddt(V(pn)) + kst * 1.0e3 * (V(pn) - fpn * s0) - (1.0 - kst) * (fpin * x - frel * ratio));
+    I(awn) <+ `FE_TC * (ddt(V(awn)) + kst * 1.0e3 * (V(awn) - enw * nw0 / wk_nw) - (1.0 - kst) * daw);
+    I(afn) <+ `FE_TC * (ddt(V(afn)) + kst * 1.0e3 * (V(afn) - enf * af0) - (1.0 - kst) * daf);
+    // (E17) imprint states: log-spaced, thermally activated time constants
+    ar_i = exp(imp_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
+    for (i = 1; i <= `FE_NI; i = i + 1) begin
+        tauj = exp(ln(imp_t1) + (i - 0.5) * (ln(imp_t2) - ln(imp_t1)) / `FE_NI) * ar_i;
+        rm = max(rm, eni * abs(xt - V(imn[i])) / tauj);
+        I(imn[i]) <+ `FE_TC * (ddt(V(imn[i])) + kst * 1.0e3 * (V(imn[i]) - eni * si0)
+            - (1.0 - kst) * eni * (xt - V(imn[i])) / tauj);
     end
     if (rm > 1.0) $bound_step(bnd / rm);
 
     // (E7) low-pass voltage y and (E12) screening state sigma
     I(yn) <+ `FE_TC * (ddt(V(yn)) + kst * 1.0e3 * (V(yn) - v) - (1.0 - kst) * (v - yv) / tau_r);
-    I(gn) <+ `FE_TC * (ddt(V(gn)) + kst * 1.0e3 * (V(gn) - s0 * sg0) - (1.0 - kst) * (x - sg) / tau_s);
+    I(gn) <+ `FE_TC * (ddt(V(gn)) + kst * 1.0e3 * (V(gn) - s0 * sg0) - (1.0 - kst) * (xt - sg) / tau_s);
 
     // (E6) reversible charge.  Two arctan branches (integrated Lorentzians):
     // up-polarized domains follow g_up (peak at V_i - V_s), down-polarized ones
     // g_dn (peak at V_i + V_s).  Summed over classes this is gbar + x g_d.
-    gu = dcap * vw * (atan((v - vi + vs) / vw) - atan((-vi + vs) / vw));
-    gd = dcap * vw * (atan((v - vi - vs) / vw) - atan((-vi - vs) / vw));
-    guy = dcap * vw * (atan((yv - vi + vs) / vw) - atan((-vi + vs) / vw));
-    gdy = dcap * vw * (atan((yv - vi - vs) / vw) - atan((-vi - vs) / vw));
+    // the imprint bias moves both branches with the switching fields (E17)
+    vie = vi - imp_v * sI / rho;
+    gu = dcap * vw * (atan((v - vie + vs) / vw) - atan((-vie + vs) / vw));
+    gd = dcap * vw * (atan((v - vie - vs) / vw) - atan((-vie - vs) / vw));
+    guy = dcap * vw * (atan((yv - vie + vs) / vw) - atan((-vie + vs) / vw));
+    gdy = dcap * vw * (atan((yv - vie - vs) / vw) - atan((-vie - vs) / vw));
     // term (2) is split as a whole into an instantaneous part (frev) and a
     // low-pass part (1 - frev): both have positive capacitance -> passive
     gb = frev * (gu + gd) + (1.0 - frev) * (guy + gdy);
     gmm = frev * (gu - gd) + (1.0 - frev) * (guy - gdy);
-    // (E5, E6) terminal charge density P + q_rev [C/m^2]
-    qt = ptc * x + kc * (c_d * v + 0.5 * (gb + x * gmm)) + (c_w * (1.0 - x * x) + c_r) * yv;
+    // (E5, E6, E13) terminal charge density P + q_rev [C/m^2]; pinned domains keep
+    // their polarization (pi) and their reversible displacement at the time of
+    // pinning (r), and no longer follow the branches
+    t2 = kc * 0.5 * (gb + x * gmm);
+    I(prn) <+ `FE_TC * (ddt(V(prn)) + kst * 1.0e3 * (V(prn) - fpn * t2)
+        - (1.0 - kst) * (fpin * t2 - frel * V(prn) / max(fpn, 1.0e-12)));
+    qt = ptc * xt + kc * (c_d * v + 0.5 * (1.0 - fpn) * (gb + x * gmm)) + V(prn) + (c_w * (1.0 - x * x) + c_r) * yv;
     V(qm) <+ qt * 100.0;
 
     // (E9) leakage, one parameter set per polarity:
