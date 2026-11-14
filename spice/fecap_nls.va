@@ -1,0 +1,268 @@
+// fecap_nls.va -- dynamic multi-domain NLS ferroelectric capacitor (Verilog-A)
+//
+// Mean-field, deterministic form of the dynamic nucleation-limited-switching
+// (NLS) picture for HfO2-type thin-film capacitors.  The film is split into
+// FE_ND classes of domains ordered by how hard they are to switch; each class
+// carries a switching state s_k in [-1, +1] and (for beta > 1) a signed
+// nucleation-progress variable h_k.  Full equations and parameter sources:
+// spice/README.md.  Python reference implementation (same equations):
+// src/fe_models/nls_multidomain.py.
+//
+// Terminals
+//   p, n : capacitor terminals.  V(p,n) > 0 drives the polarization toward +.
+//          I(p,n) = area * [ d(P + q_rev)/dt + J_leak(V) ].
+//   qm   : monitor output, V(qm) = terminal charge density P + q_rev in
+//          uC/cm^2 (1 V == 1 uC/cm^2).  Leave it open (it is driven by an
+//          ideal voltage source inside the model).  At 0 V with y = 0 it equals
+//          the remanent polarization Ps * x.
+//
+// Internal nodes (2*FE_ND + 2): s_k, h_k (k = 1..FE_ND), the low-pass voltage
+// y and the screening state sigma.  All of them are dimensionless except y
+// (volts).  Their equations are written as I(node) <+ FE_TC*(ddt(X) - f(X)),
+// i.e. dX/dt = f(X); FE_TC only scales the "current" of these nodes.
+//
+// Compile-time options
+//   FE_ND : number of domain classes (default 16), e.g. openvaf-r -D FE_ND=64
+//
+// Defaults are the generic, literature-based card of spice/params/generic.inc.
+// They are not fitted to any particular device.
+//
+// Changes relative to the earlier, never-compiled draft of this model (the
+// physics is unchanged; see spice/README.md, "Changes found by the compiler"):
+//   * initial-state selection uses (analysis("static") || $abstime <= 0):
+//     ngspice's OSDI interface does not report analysis("static") during the
+//     transient operating point, which left the state nodes singular;
+//   * the two leakage exponentials are capped at exp(80) as in the Python
+//     reference;
+//   * area, s0 and sg0 are instance parameters; the monitor output is in
+//     uC/cm^2 instead of fC.
+
+`include "disciplines.vams"
+
+`ifndef FE_ND
+`define FE_ND 16
+`endif
+// scale of the state-node "currents" (A per unit of dX/dt); numerical only
+`define FE_TC 1.0e-6
+// physical constants
+`define FE_KQ 8.617333262e-5
+`define FE_BS 3.794686480e-05
+
+module fecap_nls(p, n, qm);
+inout p, n, qm;
+electrical p, n, qm;
+electrical [1:`FE_ND] sn, hn;
+electrical yn, gn;
+
+// ---------------------------------------------------------------- geometry
+(*type="instance"*) parameter real area = 1.0e-10 from (0:inf);   // capacitor area [m^2]
+parameter real tfe = 1.0e-8 from (0:inf);                          // ferroelectric thickness [m]
+parameter real t0 = 298.15 from (0:inf);                           // reference temperature [K]
+(*type="instance"*) parameter real s0 = -1.0 from [-1:1];          // initial state of every class [1]
+(*type="instance"*) parameter real sg0 = 0.0 from [-1:1];          // initial screening state, sigma(0) = s0*sg0 [1]
+
+// ------------------------------------------------- polarization, switching
+parameter real ps = 0.229 from [0:inf);        // saturation polarization Ps [C/m^2]
+parameter real emp = 1.775e8 from (0:inf);     // Dagum scale b+ of the activation field, + direction [V/m]
+parameter real emn = 1.775e8 from (0:inf);     // Dagum scale b- of the activation field, - direction [V/m]
+parameter real ap = 8.68 from (0:inf);         // Dagum shape a+ [1]
+parameter real an = 8.68 from (0:inf);         // Dagum shape a- [1]
+parameter real pt = 1.136 from (0:inf);        // Dagum shape p (both directions) [1]
+parameter real alpha = 4.11 from (0:inf);      // Merz-type exponent alpha [1]
+parameter real beta = 2.07 from [1:inf);       // Weibull exponent beta [1]
+parameter real tau0 = 3.87e-7 from (0:inf);    // attempt time tau_0 (tau_inf) [s]
+parameter real tau_h = 3.7e-6 from (0:inf);    // relaxation time of h without drive [s]
+parameter real vimp = -0.08;                   // built-in (imprint) voltage V_imp [V]
+parameter real rho = 1.0 from (0:1];           // voltage division factor C_i/(C_i+C_f) [1]
+parameter real vdep = 0.0;                     // depolarization voltage V_dep (0 = off) [V]
+parameter real tau_s = 1.0e-4 from (0:inf);    // screening time constant tau_s [s]
+parameter real sb = 0.0 from [0:inf);          // spread of per-class offsets delta_k (0 = off) [V]
+
+// ------------------------------------------------------ reversible response
+parameter real c_d = 0.02055;                  // (1) linear dielectric capacitance C_d [F/m^2]
+parameter real dcap = 0.03023;                 // (2) peak height of each reversible branch Delta C [F/m^2]
+parameter real frev = 1.0 from [0:1];          // instantaneous fraction of term (2) [1]
+parameter real c_w = 0.0;                      // (3) reversible domain-wall capacitance C_w [F/m^2]
+parameter real vw = 2.236 from (0:inf);        // half width of each branch V_w [V]
+parameter real vs = 3.006;                     // distance of each branch peak from V_i, V_s [V]
+parameter real vi = 0.0;                       // crossing voltage of the two branches V_i [V]
+parameter real c_r = 0.0;                      // state-independent slow capacitance C_r [F/m^2]
+parameter real tau_r = 1.0e-7 from (0:inf);    // low-pass time constant of y [s]
+
+// ----------------------------------------------------------------- leakage
+parameter real g_oh = 1.0e-4;                  // ohmic conductance per area G_ohm [A/m^2/V]
+parameter real phi_oh = 0.0;                   // activation energy of G_ohm [eV]
+parameter real spf_p = 4.8e-12;                // Poole-Frenkel prefactor, V > 0 [S/m]
+parameter real spf_n = 4.8e-12;                // Poole-Frenkel prefactor, V < 0 [S/m]
+parameter real phit_p = 0.68;                  // PF trap depth, V > 0 [eV]
+parameter real phit_n = 0.68;                  // PF trap depth, V < 0 [eV]
+parameter real eps_op = 70.0 from (0:inf);     // permittivity used in the barrier lowering [1]
+parameter real js_p = 0.0;                     // Schottky prefactor at t0, V > 0 (0 = off) [A/m^2]
+parameter real js_n = 0.0;                     // Schottky prefactor at t0, V < 0 (0 = off) [A/m^2]
+parameter real phib_p = 0.48;                  // Schottky barrier, V > 0 [eV]
+parameter real phib_n = 0.48;                  // Schottky barrier, V < 0 [eV]
+parameter real jt_p = 0.0;                     // trap-assisted tunnelling prefactor, V > 0 (0 = off) [A/m^2]
+parameter real jt_n = 0.0;                     // trap-assisted tunnelling prefactor, V < 0 (0 = off) [A/m^2]
+parameter real et_p = 1.0e9;                   // TAT characteristic field, V > 0 [V/m]
+parameter real et_n = 1.0e9;                   // TAT characteristic field, V < 0 [V/m]
+parameter real e0_leak = 1.0e6 from (0:inf);   // field regularization near 0 V (numerical) [V/m]
+
+// --------------------------------------- temperature coefficients and hooks
+parameter real tc_ea = 0.0;                    // linear temperature coefficient of the activation field [1/K]
+parameter real tc_ps = 0.0;                    // linear temperature coefficient of Ps [1/K]
+parameter real tc_tau = 0.0;                   // linear temperature coefficient of tau_0 [1/K]
+parameter real tc_c = 0.0;                     // linear temperature coefficient of term (1)+(2) [1/K]
+parameter real mul_ps = 1.0;                   // multiplier on Ps (variation / fatigue hook) [1]
+parameter real mul_ea = 1.0;                   // multiplier on the activation field (variation hook) [1]
+
+// -------------------------------------------------- sampling and numerics
+parameter real y_max = 9.0 from (0:inf);       // depth of the logit quantile grid [1]
+parameter real grid_a = 1.5 from (0:inf);      // sinh stretching of the quantile grid [1]
+parameter real bnd = 0.1 from (0:inf);         // max state change per time step used by $bound_step [1]
+
+genvar i;
+real kst, ux, v, tk, dtk, vth, vth0, te, tau, ptc, kc, zmin, relax, zv, x, sg, yv, rm;
+real yl, yh, ql, qh, qm_k, vp, vn, dl, phi, u, rp, rn, s, h, hu, hd, cu, cd, ru, rd, ds, dh;
+real gp, gm_, rev;
+real gu, gd, guy, gdy, gb, gmm, qt;
+real es, eroot, ar, jl, spf, phit, js, phib, jt, et;
+
+analog begin
+    // Static analyses (DC operating point, including the transient one at
+    // t = 0) pin every state to its initial value; afterwards the states obey
+    // their rate equations.  ngspice/OSDI does not set analysis("static") for
+    // the transient operating point, hence the $abstime test.
+    kst = 0.0;
+    if (analysis("static") || $abstime <= 0.0) kst = 1.0;
+
+    v = V(p, n);
+    yv = V(yn);
+    sg = V(gn);
+
+    // temperature-dependent prefactors (linear coefficients; 0 by default)
+    tk = $temperature;
+    dtk = tk - t0;
+    vth = `FE_KQ * tk;
+    vth0 = `FE_KQ * t0;
+    te = (1.0 + tc_ea * dtk) * mul_ea * tfe;    // field -> voltage, with T and variation hooks
+    tau = tau0 * (1.0 + tc_tau * dtk);
+    ptc = ps * mul_ps * (1.0 + tc_ps * dtk);
+    kc = 1.0 + tc_c * dtk;
+
+    // rate cut-off: exp(-z^-alpha) < exp(-60) is treated as exactly 0
+    zmin = pow(60.0, -1.0 / alpha);
+    // reversal threshold u_x = |V_imp| + 0.1 V (holding at 0 V is not a reversal)
+    ux = abs(vimp) + 0.1;
+    // gated relaxation of h:  1/tau_h_eff = 1 / (tau_h [1 + ((V - V_imp)/0.1 V)^4])
+    zv = (v - vimp) / 0.1;
+    relax = 1.0 / (tau_h * (1.0 + zv * zv * zv * zv));
+
+    // (E4, E5) logit quantile grid y_j = y_max sinh(a xi_j)/sinh(a), weights
+    // w_k = q_hi - q_lo, and the mean state x = sum_k w_k s_k
+    x = 0.0;
+    for (i = 1; i <= `FE_ND; i = i + 1) begin
+        yl = y_max * sinh(grid_a * (2.0 * (i - 1) / `FE_ND - 1.0)) / sinh(grid_a);
+        yh = y_max * sinh(grid_a * (2.0 * i / `FE_ND - 1.0)) / sinh(grid_a);
+        ql = 1.0 / (1.0 + exp(-yl));
+        qh = 1.0 / (1.0 + exp(-yh));
+        if (i == 1) ql = 0.0;
+        if (i == `FE_ND) qh = 1.0;
+        x = x + (qh - ql) * V(sn[i]);
+    end
+
+    rm = 0.0;
+    for (i = 1; i <= `FE_ND; i = i + 1) begin
+        // (E4) activation voltage of class k from the Dagum quantile at the
+        // mid-point q_k: E(q) = b [q^(-1/p) - 1]^(-1/a), times t_fe
+        yl = y_max * sinh(grid_a * (2.0 * (i - 1) / `FE_ND - 1.0)) / sinh(grid_a);
+        yh = y_max * sinh(grid_a * (2.0 * i / `FE_ND - 1.0)) / sinh(grid_a);
+        qm_k = 1.0 / (1.0 + exp(-0.5 * (yl + yh)));
+        vp = emp * te * pow(pow(qm_k, -1.0 / pt) - 1.0, -1.0 / ap);
+        vn = emn * te * pow(pow(qm_k, -1.0 / pt) - 1.0, -1.0 / an);
+        // optional per-class offset delta_k = sb * logit(frac(k * golden ratio))
+        dl = 0.0;
+        if (sb > 0.0) begin
+            phi = i * 0.6180339887498949;
+            phi = phi - floor(phi);
+            phi = min(max(phi, 1.0e-3), 1.0 - 1.0e-3);
+            dl = sb * ln(phi / (1.0 - phi));
+        end
+        // (E1) drive seen by class k
+        u = rho * v - vdep * (x - sg) - vimp - dl;
+        // (E2) one-directional Merz-type rates R+ (u > 0) and R- (u < 0)
+        rp = 0.0;
+        rn = 0.0;
+        if (u > vp * zmin) rp = exp(-pow(vp / u, alpha)) / tau;
+        if (-u > vn * zmin) rn = exp(-pow(-vn / u, alpha)) / tau;
+        s = V(sn[i]);
+        h = V(hn[i]);
+        hu = max(h, 0.0);
+        hd = max(-h, 0.0);
+        // saturation (h/h_m)^4 with h_m = 5, argument capped at 6
+        cu = min(hu, 6.0) / 5.0;
+        cu = cu * cu * cu * cu;
+        cd = min(hd, 6.0) / 5.0;
+        cd = cd * cd * cd * cd;
+        // (E3) hazard r = beta R h^(beta-1); h^(beta-1) is linear below 1e-6
+        ru = rp;
+        rd = rn;
+        if (beta > 1.0) begin
+            ru = beta * rp * hu / max(hu, 1.0e-6) * exp((beta - 1.0) * ln(max(hu, 1.0e-6)));
+            rd = beta * rn * hd / max(hd, 1.0e-6) * exp((beta - 1.0) * ln(max(hd, 1.0e-6)));
+        end
+        ds = ru * (1.0 - s) - rd * (1.0 + s);
+        // (E3b) progress variable: growth, saturation, gated relaxation and the
+        // reset term G(u - u_x) h- - G(-u - u_x) h+ with G(z) = [1 + tanh(z/10 mV)]/2,
+        // tau_x = 0.1 ns
+        gp = 0.5 * (1.0 + tanh((u - ux) / 0.01));
+        gm_ = 0.5 * (1.0 + tanh((-u - ux) / 0.01));
+        rev = (gp * hd - gm_ * hu) / 1.0e-10;
+        dh = rp * (1.0 - cu) - rn * (1.0 - cd) - relax * h + rev;
+        // step-size guard: |dX| <= bnd per step; while a reset is in progress
+        // keep dt <= bnd * 2 tau_x so a non-L-stable method cannot ring
+        rm = max(rm, max(ru * (1.0 - s) + rd * (1.0 + s), abs(dh)));
+        if (gp * hd + gm_ * hu > 1.0e-9) rm = max(rm, bnd / 2.0e-10);
+        // ddt() is unconditional so its history at t = 0 comes from the DC solution
+        I(sn[i]) <+ `FE_TC * (ddt(V(sn[i])) + kst * 1.0e3 * (V(sn[i]) - s0) - (1.0 - kst) * ds);
+        I(hn[i]) <+ `FE_TC * (ddt(V(hn[i])) + kst * 1.0e3 * V(hn[i]) - (1.0 - kst) * dh);
+    end
+    if (rm > 1.0) $bound_step(bnd / rm);
+
+    // (E7) low-pass voltage y and (E12) screening state sigma
+    I(yn) <+ `FE_TC * (ddt(V(yn)) + kst * 1.0e3 * (V(yn) - v) - (1.0 - kst) * (v - yv) / tau_r);
+    I(gn) <+ `FE_TC * (ddt(V(gn)) + kst * 1.0e3 * (V(gn) - s0 * sg0) - (1.0 - kst) * (x - sg) / tau_s);
+
+    // (E6) reversible charge.  Two arctan branches (integrated Lorentzians):
+    // up-polarized domains follow g_up (peak at V_i - V_s), down-polarized ones
+    // g_dn (peak at V_i + V_s).  Summed over classes this is gbar + x g_d.
+    gu = dcap * vw * (atan((v - vi + vs) / vw) - atan((-vi + vs) / vw));
+    gd = dcap * vw * (atan((v - vi - vs) / vw) - atan((-vi - vs) / vw));
+    guy = dcap * vw * (atan((yv - vi + vs) / vw) - atan((-vi + vs) / vw));
+    gdy = dcap * vw * (atan((yv - vi - vs) / vw) - atan((-vi - vs) / vw));
+    // term (2) is split as a whole into an instantaneous part (frev) and a
+    // low-pass part (1 - frev): both have positive capacitance -> passive
+    gb = frev * (gu + gd) + (1.0 - frev) * (guy + gdy);
+    gmm = frev * (gu - gd) + (1.0 - frev) * (guy - gdy);
+    // (E5, E6) terminal charge density P + q_rev [C/m^2]
+    qt = ptc * x + kc * (c_d * v + 0.5 * (gb + x * gmm)) + (c_w * (1.0 - x * x) + c_r) * yv;
+    V(qm) <+ qt * 100.0;
+
+    // (E9) leakage, one parameter set per polarity:
+    // J = G v + tanh(v/V_th) [ PF + Schottky + TAT ]
+    if (v >= 0.0) begin
+        spf = spf_p; phit = phit_p; js = js_p; phib = phib_p; jt = jt_p; et = et_p;
+    end else begin
+        spf = spf_n; phit = phit_n; js = js_n; phib = phib_n; jt = jt_n; et = et_n;
+    end
+    es = sqrt(v * v / (tfe * tfe) + e0_leak * e0_leak);
+    eroot = sqrt(es) - sqrt(e0_leak);
+    ar = 1.0 / vth0 - 1.0 / vth;
+    jl = g_oh * v * exp(phi_oh * ar);
+    jl = jl + tanh(v / vth) * (spf * es * exp(phit * ar) * exp(min(2.0 * `FE_BS / sqrt(eps_op) * eroot / vth, 80.0))
+        + js * (tk / t0) * (tk / t0) * exp(phib * ar) * (exp(min(`FE_BS / sqrt(eps_op) * eroot / vth, 80.0)) - 1.0)
+        + jt * exp(-et / es));
+
+    // (E8) terminal current
+    I(p, n) <+ area * (ddt(qt) + jl);
+end
+endmodule

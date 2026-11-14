@@ -1,36 +1,64 @@
-# 鐵電切換與遲滯模型 · Ferroelectric Switching Models
+**English** | [繁體中文](README.zh-TW.md)
 
-一套小而有測試的 Python 函式庫，收錄文獻中標準的鐵電切換與遲滯模型，以 HfO₂ 系薄膜電容為設定：Landau–Devonshire 自由能與 Landau–Khalatnikov 動力學、Preisach 模型與 FORC 分布、KAI／NLS／Merz 切換動力學與參數擬合，以及 PUND、三角波 P–E 量測與漏電補償的模擬和分析。所有參數都是示意用的合成數值，不含任何量測資料。
+# Ferroelectric Switching Models
 
-A small, tested Python library of standard ferroelectric switching and hysteresis models, set up for HfO₂-based thin-film capacitors: Landau–Devonshire free energy with Landau–Khalatnikov dynamics, a scalar Preisach model with FORC analysis, KAI / NLS / Merz switching kinetics with fitting helpers, and simulated PUND and triangular-wave P–E measurements with leakage compensation and loop-parameter extraction. All parameters are illustrative synthetic values; no measured data are included.
+A small, tested Python library of standard ferroelectric switching and hysteresis models, set up for HfO₂-based thin-film capacitors, plus a compact **Verilog-A capacitor model for circuit simulation** that has been compiled with OpenVAF-Reloaded and verified in ngspice against its Python reference.
 
-| Landau 自由能與 S 曲線 | Landau–Khalatnikov 動態遲滯 |
+- **Landau–Devonshire** free energy and **Landau–Khalatnikov** dynamics
+- a scalar **Preisach** model with first-order reversal curves (**FORC**)
+- **KAI / NLS / Merz** switching kinetics with fitting helpers
+- simulated **PUND** and triangular-wave P–E measurements, **leakage compensation** and loop-parameter extraction
+- a **dynamic multi-domain NLS** capacitor model (`fe_models.nls_multidomain`) and its Verilog-A version [`spice/fecap_nls.va`](spice/fecap_nls.va): finite-pulse switching, accumulation under repeated sub-coercive pulses without artificial drift under small symmetric signals, a state-dependent (butterfly) reversible response, imprint, optional back-switching with screening, leakage and temperature coefficients
+
+The Landau, Preisach, kinetics and measurement modules use illustrative synthetic parameters. The multi-domain model uses a generic card built from published fits (every value with its source). No measured data of any device are included; comparisons with the literature use numbers taken from published papers ([`data/literature/`](data/literature/)).
+
+## Figure gallery
+
+| Landau free energy and S-curve | Landau–Khalatnikov dynamic loops |
 |---|---|
 | ![Landau energy](docs/landau_energy.png) | ![LK loops](docs/lk_loops.png) |
 
-| Preisach 主迴線、次迴線與 FORC 分布 |
+| Preisach major and minor loops, FORC distribution |
 |---|
 | ![Preisach and FORC](docs/preisach_forc.png) |
 
-| KAI／NLS 切換曲線、Merz 定律擬合 |
+| KAI / NLS switching curves and a Merz-law fit |
 |---|
 | ![Kinetics](docs/kinetics.png) |
 
-| PUND 脈衝與電流 | 漏電補償 |
+| PUND pulses and currents | Leakage compensation |
 |---|---|
 | ![PUND](docs/pund.png) | ![Leakage compensation](docs/leakage_compensation.png) |
 
-## 安裝
+**Verilog-A model in ngspice (lines) vs. the Python reference (dots)**
 
-需要 Python ≥ 3.10，相依套件只有 NumPy、SciPy、Matplotlib。
+| P–V loops at 1 / 10 / 100 kHz and minor loops | PUND currents |
+|---|---|
+| ![SPICE P-V loops](docs/spice_pv_loops.png) | ![SPICE PUND](docs/spice_pund.png) |
+| **Switching kinetics** | **Small-signal stability vs. genuine slow switching** |
+| ![SPICE switching map](docs/spice_switching_map.png) | ![SPICE small signal](docs/spice_small_signal.png) |
+
+**Multi-domain model vs. values from published papers** (see [Comparison with published data](spice/README.md#comparison-with-published-data))
+
+| Switching kinetics (published NLS fits) | C–V branches (digitized) |
+|---|---|
+| ![Literature switching](docs/literature_switching.png) | ![Literature C-V](docs/literature_cv.png) |
+| **Read endurance (digitized)** | **Back-switching (digitized)** |
+| ![Literature read endurance](docs/literature_read_endurance.png) | ![Literature back-switching](docs/literature_backswitching.png) |
+
+## Install
+
+Python ≥ 3.10; the only dependencies are NumPy, SciPy and Matplotlib.
 
 ```bash
 pip install -e .
 ```
 
-## 快速使用
+The SPICE part additionally needs [OpenVAF-Reloaded](https://github.com/arpadbuermen/OpenVAF) (or OpenVAF) to compile the Verilog-A file and ngspice ≥ 39 with OSDI support to run it; see [spice/README.md](spice/README.md#quick-start-ngspice).
 
-所有函式內部用 SI 單位（C/m²、V/m、s）；`fe_models.units` 提供 µC/cm²、MV/cm 的換算。
+## Quick start
+
+All functions use SI units internally (C/m², V/m, s); `fe_models.units` converts to µC/cm² and MV/cm.
 
 ```python
 import numpy as np
@@ -60,50 +88,151 @@ print(f"log10 t1 = {fit['log10_t1']:.2f}, width = {fit['width']:.2f} decades")
 # log10 t1 = -6.50, width = 0.49 decades
 ```
 
-重新產生所有圖（輸出到 `docs/`）：
+The multi-domain capacitor model:
+
+```python
+from fe_models import nls_multidomain as nm
+
+p = nm.generic_card()                                  # generic card from published fits
+print(f"switched by 2 V / 1 us: {nm.switched_fraction(p, 2.0, 1e-6):.3f}")
+# switched by 2 V / 1 us: 0.754
+
+vf, breaks = nm.pwl([0, 0.1e-6, 10.1e-6, 10.2e-6, 20e-6], [0, 3, 3, 0, 0])
+r = nm.simulate(p, vf, 20e-6, s0=-1, breaks=breaks)    # arbitrary V(t), Radau
+print(f"Q/A at the end: {r['qd'][-1] / 1e-2:.2f} uC/cm^2")
+# Q/A at the end: 22.87 uC/cm^2
+
+# 10^6 cycles of a +-0.3 V triangle: the state does not move
+print(nm.repeat_waveform(p, [0, 0.25e-6, 0.75e-6, 1e-6], [0, -0.3, 0.3, 0], 1e6, 1.0))
+# 1.0
+# 10^6 pairs of +-0.9 V, 40 ns reads: genuine tail switching
+print(f"{1 - nm.bipolar_pairs(p, 0.9, 40e-9, 100e-9, 1e6, nd=64):.3f}")
+# 0.101
+```
+
+Regenerate the figures (written to `docs/`; the SPICE figures are skipped when ngspice is not found):
 
 ```bash
 python examples/make_all_figures.py
 ```
 
-## 模組
+## Modules
 
-| 模組 | 內容 |
-|---|---|
-| `fe_models.landau` | 自由能 $F = \alpha P^2 + \beta P^4 + \gamma P^6 - EP$、S 曲線（含負電容分支）、由自由能求本徵矯頑場、由 $(P_r, E_c)$ 反推 $(\alpha, \beta)$、Landau–Khalatnikov 方程 $\rho\,dP/dt = -\partial F/\partial P$（任意 $E(t)$，`solve_ivp`） |
-| `fe_models.preisach` | 離散 hysteron 網格的純量 Preisach 模型（Gaussian／Lorentzian 矯頑場與偏壓場分布、imprint）、主迴線與次迴線、FORC 模擬與 FORC 分布 $-\tfrac12 \partial^2 P/\partial E_r \partial E$ |
-| `fe_models.kinetics` | KAI $1-\exp[-(t/t_0)^n]$、NLS（log-normal 或 Lorentzian 的 $\log t_0$ 分布）、Merz 定律 $t_0 = t_\infty \exp[(E_a/E)^m]$，以及 `fit_kai`、`fit_nls`、`fit_merz` |
-| `fe_models.measurement` | 三角波與 PUND 波形、電容電流 $I = A\,dD/dt + I_\text{leak}(V)$、電流積分成 P–E 迴線、PUND 分析、歐姆漏電與雙頻率漏電補償、$P_r$、$\pm E_c$、imprint 萃取、喚醒／疲勞的唯象曲線 |
-| `fe_models.units` | 常數與單位換算（1 µC/cm² = 10⁻² C/m²，1 MV/cm = 10⁸ V/m），以及示意用的 HfO₂ 預設值 |
+### `fe_models.landau` — Landau–Devonshire and Landau–Khalatnikov
 
-2-4 Landau 模型中 $(\alpha, \beta)$ 與 $(P_r, E_c)$ 的關係（推導見 `landau.py` 的模組說明）：
+Free energy $F = \alpha P^2 + \beta P^4 + \gamma P^6 - EP$, the static S-curve $E(P) = \partial F/\partial P$ including the negative-capacitance branch, the intrinsic coercive field from the free energy, $(\alpha, \beta)$ from $(P_r, E_c)$, and the Landau–Khalatnikov equation $\rho\,\mathrm{d}P/\mathrm{d}t = -\partial F/\partial P$ for any $E(t)$ (`solve_ivp`). For the 2–4 model (derivation in the docstring of `landau.py`):
 
 $$P_r = \sqrt{-\alpha/2\beta}, \qquad E_c = \frac{4}{3\sqrt{3}}\,(-\alpha)\,P_r .$$
 
-## 測試
+Main functions: `coefficients_from_pr_ec`, `free_energy`, `field_from_polarization`, `s_curve`, `static_loop`, `remanent_polarization`, `coercive_field`, `rho_from_time_constant`, `lk_simulate(t, E_func, ...)`, `lk_loop(frequency, E_amp, ...)`.
 
-測試只用標準函式庫 `unittest`，在 repo 根目錄執行：
+### `fe_models.preisach` — Preisach model and FORC
+
+A scalar Preisach model on a discrete hysteron grid with Gaussian or Lorentzian coercive- and bias-field distributions (a non-zero bias centre gives imprint); major and minor loops with history; FORC simulation and the FORC distribution
+
+$$\rho(E_r, E) = -\frac12\,\frac{\partial^2 P}{\partial E_r\,\partial E}.$$
+
+```python
+from fe_models.preisach import PreisachModel, simulate_forcs, forc_distribution
+m = PreisachModel(Ec=1e8, sigma_c=0.25e8, distribution="lorentzian")
+Er, E, P = simulate_forcs(m)          # P[i, j] = P(Er[i], E[j])
+rho = forc_distribution(Er, E, P)
+```
+
+### `fe_models.kinetics` — KAI, NLS, Merz
+
+KAI $f(t) = 1 - \exp[-(t/t_0)^n]$; NLS with a Lorentzian or log-normal distribution of $\log_{10} t_0$, $f(t) = \int\{1 - \exp[-(t/10^u)^n]\}F(u)\,\mathrm{d}u$; the Merz law $t_0 = t_\infty\exp[(E_a/E)^m]$; and `fit_kai`, `fit_nls`, `fit_merz`. These models assume a field that is switched on and then held constant (see [Limitations](#limitations)).
+
+### `fe_models.measurement` — PUND, P–E loops, leakage
+
+Triangular and PUND waveforms (`triangle_wave`, `pund_waveform`); the capacitor current $I = A\,\mathrm{d}D/\mathrm{d}t + I_{leak}(V)$ with $D = \varepsilon_0\varepsilon_r E + P_{sw}$ (`capacitor_current`, any callable for $P_{sw}$, for example `PreisachModel.apply`); P–E loops by current integration (`polarization_from_current`); PUND analysis (`analyze_pund`); ohmic leakage estimation and subtraction (`estimate_leakage_resistance`, `compensate_leakage_ohmic`); two-frequency leakage compensation $I_{leak} = (f_2 I_1 - f_1 I_2)/(f_2 - f_1)$ (`compensate_leakage_two_frequency`); $P_r$, $\pm E_c$ and imprint extraction (`extract_loop_parameters`); a phenomenological wake-up / fatigue curve (`wakeup_fatigue_form`, `cycling_pr`).
+
+### `fe_models.nls_multidomain` — dynamic multi-domain NLS capacitor model
+
+The film is split into $N_d$ classes of domains (quantiles of a Dagum activation-field distribution sampled on a logit grid). Class $k$ has a weight $w_k$, a state $s_k \in [-1, 1]$ and a signed nucleation progress $h_k$:
+
+$$\bar x = \sum_k w_k s_k,\qquad R_k^{\pm} = \tau_0^{-1}\exp\left[-\left(V_{a,k}/|u_k|\right)^{\alpha}\right],\qquad \frac{\mathrm{d}s_k}{\mathrm{d}t} = \beta R_k^{+}(h_k^{+})^{\beta-1}(1 - s_k) - \beta R_k^{-}(h_k^{-})^{\beta-1}(1 + s_k),$$
+
+with $u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k$, a progress variable that grows with $R$, relaxes only near 0 V and is reset when the drive reverses, a two-branch reversible charge, a screening state $\sigma$ and leakage. Under a constant field it reduces to the single-pulse NLS form $f = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}$. The full equation set (E1–E12) and every parameter are in [spice/README.md](spice/README.md#equations); the reasoning behind each equation is in [docs/model-derivation.md](docs/model-derivation.md).
+
+Main functions: `generic_card(**overrides)`, `simulate(p, v_of_t, t_end, s0, breaks=...)` (Radau), `switched_fraction`, `train_fraction`, `bipolar_pairs`, `pund`, `repeat_waveform`, `step` (closed-form constant-voltage update), `march` (fixed-grid θ-method), `q_rev`, `q_term`, `j_leak`, `rhs`, `pwl`, `spice_model_card`.
+
+### `fe_models.units`
+
+Constants and conversions (1 µC/cm² = 10⁻² C/m², 1 MV/cm = 10⁸ V/m) and the illustrative HfO₂ defaults used by the first four modules.
+
+## SPICE model (Verilog-A)
+
+[`spice/fecap_nls.va`](spice/fecap_nls.va) (module `fecap_nls`) implements the same equations as `fe_models.nls_multidomain`. Terminals `p`, `n` and a monitor output `qm` whose voltage is the terminal charge density in µC/cm²; instance parameters `s0`, `area`, `sg0`; 16 domain classes by default (`-D FE_ND=64` for more).
+
+```bash
+python spice/build_osdi.py                        # needs OPENVAF (and on Windows LLD + MINGW_LIBDIR)
+NGSPICE=/path/to/ngspice_con python spice/compare_ngspice.py
+```
+
+```spice
+.include params/generic.inc
+N1 p 0 qm fecap_generic s0=-1 area=1e-10
+.control
+pre_osdi build/fecap_nls.osdi
+...
+```
+
+**Status.** Compiled with OpenVAF-Reloaded 24.0.2 and run in ngspice 47 (Windows). Twelve testbenches — PUND, triangular P–V loops at three frequencies, minor loops, switched fraction versus pulse width and amplitude, 1000 cycles of ±0.3 V, slow accumulation at ±0.8 V, low-pass reversible response, back-switching, 85 °C with temperature coefficients, leakage I–V — agree with the Python reference (switched fraction within 2×10⁻⁴, charges within 0.01 µC/cm², coercive voltages within 6.4 mV, no drift above 10⁻¹³ after 1000 small-signal cycles). The real simulator required one change: the initial-state condition now also tests `$abstime`, because ngspice's OSDI interface does not report `analysis("static")` at the transient operating point. HSPICE and Spectre were **not** tested. Full documentation — equations, parameter table with sources, numerical notes, verification table, comparison with published data, limitations: **[spice/README.md](spice/README.md)**. How the model was derived: [docs/model-derivation.md](docs/model-derivation.md) · [繁體中文](docs/model-derivation.zh-TW.md).
+
+## Project structure
+
+```
+ferroelectric-models/
+├── src/fe_models/
+│   ├── landau.py            Landau-Devonshire, Landau-Khalatnikov
+│   ├── preisach.py          Preisach model, FORC
+│   ├── kinetics.py          KAI, NLS, Merz, fitting
+│   ├── measurement.py       PUND, P-E loops, leakage compensation
+│   ├── nls_multidomain.py   dynamic multi-domain NLS (Python reference of the Verilog-A model)
+│   └── units.py             constants, unit conversions
+├── spice/
+│   ├── fecap_nls.va         Verilog-A model
+│   ├── params/generic.inc   generic parameter card with sources
+│   ├── tests/*.cir          ngspice testbenches
+│   ├── build_osdi.py        compile with OpenVAF (and link with lld on Windows)
+│   ├── compare_ngspice.py   run the testbenches, compare with Python
+│   └── README.md            model documentation
+├── data/literature/         values from published papers (CSV with citation headers)
+├── examples/                one script per figure; make_all_figures.py runs them all
+├── docs/                    figures, model-derivation.md, model-derivation.zh-TW.md
+└── tests/                   unittest suites
+```
+
+## Testing
+
+The tests use only the standard-library `unittest`. From the repository root:
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests
 ```
 
-（Windows PowerShell：`$env:PYTHONPATH="src"; python -m unittest discover -s tests`）
+(Windows PowerShell: `$env:PYTHONPATH="src"; python -m unittest discover -s tests`)
 
-測試涵蓋：解析輔助式與數值 $P_r$、$E_c$ 一致；LK 慢掃趨近靜態 $E_c$、快掃 $E_c$ 變大；Preisach 對稱性、飽和於 $\pm P_s$、次迴線在主迴線內、return-point memory 與 wiping-out；FORC 分布還原 hysteron 分布；KAI 在 $t_0$ 等於 $1-1/e$；窄分布 NLS 退化為 KAI；固定亂數種子下擬合能取回參數；線性電容的 PUND 切換電荷為零；漏電補償還原無漏電迴線；平移迴線的 $E_c$、$P_r$、imprint 萃取。
+Without ngspice this runs 76 tests (one test class skipped) in about 20 s. With ngspice and the compiled model available (`NGSPICE`, and `OPENVAF` or an existing `spice/build/fecap_nls.osdi`), the skipped class runs all twelve testbenches as well: 79 tests in about 75 s.
 
-## 限制
+The original 43 tests cover: analytic helpers vs. numerical $P_r$, $E_c$; slow LK sweeps approach the static $E_c$ and fast sweeps widen it; Preisach symmetry, saturation at $\pm P_s$, minor loops inside the major loop, return-point memory and wiping-out; the FORC distribution recovers the hysteron distribution; KAI equals $1 - 1/e$ at $t_0$; a narrow NLS reduces to KAI; fits recover parameters with a fixed random seed; a linear capacitor gives zero PUND switching charge; leakage compensation recovers the leak-free loop; $E_c$, $P_r$ and imprint of a shifted loop.
 
-- **參數是示意值。** $P_r \approx 20$ µC/cm²、$E_c \approx 1$ MV/cm、膜厚 10 nm、$\varepsilon_r \approx 30$ 等預設值是 HfO₂ 薄膜常見的量級，沒有擬合任何元件。
-- **純量、一維模型。** 不含去極化場、介面層與電壓分配、晶粒與多相結構、domain wall 的細節、空間不均勻，也不含串聯電阻與量測系統的 RC 時間常數。
-- **Landau 的 $E_c$ 是本徵矯頑場**（亞穩極小值消失的場），在這裡是決定迴線寬度的參數，不是對實際薄膜矯頑場的預測；LK 的黏滯係數 $\rho$ 是唯象參數。
-- **KAI、NLS（以及類似模型）與 Merz 定律都假設切換期間外加電場固定**（場階躍後保持不變）。把它們擬合到斜坡或三角波電場下取得的資料（例如 P–E 迴線的切換電流），超出了模型所述的假設。
-- Preisach 模型與速率無關；雙頻率漏電補償依賴這個性質，用在實際薄膜時兩個頻率應該相近。
-- 喚醒／疲勞函式只是曲線形狀（唯象），不代表任何機制。
+The 33 tests of `test_nls_multidomain.py` cover the multi-domain model: grid weights and ordering; one-directional rates; bounded states; reduction to the single-pulse NLS form (ODE vs. closed form within 2×10⁻⁴) and to the continuous NLS integral; closed forms vs. ODE for pulse trains, PUND and bipolar cycles; step-size convergence; no drift for ±26 mV and ±0.3 V over 10⁶ cycles; genuine accumulation converging with $N_d$; butterfly branches and the $f_{rev}$ split; passivity; charge conservation in a series-resistor circuit; three deliberately broken model versions that the checks must catch; and consistency of the Verilog-A defaults, the parameter card and the testbenches with the Python module.
+
+## Limitations
+
+- **Illustrative parameters.** The defaults of the Landau, Preisach, kinetics and measurement modules ($P_r \approx 20$ µC/cm², $E_c \approx 1$ MV/cm, 10 nm, $\varepsilon_r \approx 30$) are typical magnitudes for HfO₂ films and are not fitted to any device. The multi-domain card is taken from published fits of particular devices and is not a fit to any device of yours.
+- **Scalar, one-dimensional models.** No depolarization field (except the optional term of the multi-domain model), interface layer and voltage division (except the multi-domain $\rho$, not validated), grain or phase structure, domain-wall detail, spatial non-uniformity, series resistance or RC time constant of the measurement setup.
+- **The Landau $E_c$ is the intrinsic coercive field** (where the metastable minimum disappears). Here it is a parameter that sets the loop width, not a prediction of the coercive field of real films; the LK viscosity $\rho$ is phenomenological.
+- **KAI, NLS (and similar models) and the Merz law assume a constant applied field during switching** (a field step that is then held). Fitting them to data taken under ramped or triangular fields (for example the switching current of a P–E loop) is outside the assumptions of the models. The multi-domain model removes this restriction by integrating the rates along the waveform.
+- The Preisach model is rate independent; the two-frequency leakage compensation relies on that and, for real films, the two frequencies should be close.
+- The wake-up / fatigue functions are curve shapes only (phenomenological), not a mechanism.
+- **Multi-domain model:** no wake-up or fatigue, no logarithmic-time imprint, mean-field only (no single-grain stochastics), rates below about 0.8 V and switching faster than 200 ns are extrapolations of the cited data, temperature coefficients are placeholders, and HSPICE / Spectre were not tested. Comparisons with published read-endurance data show that the low-field tail and $\tau_0$ must be measured on the device of interest. Full list: [spice/README.md](spice/README.md#limitations).
 
 ## Related work
 
-The Python package Ferro by JAnderson419 ([PyPI `ferro`](https://pypi.org/project/ferro/)) handles reading PV, PUND and IV test data and includes a simple Preisach model. This repository focuses instead on switching-kinetics models (KAI / NLS / Merz) and their fitting, plus Landau–Khalatnikov and Preisach / FORC simulation.
+The Python package Ferro by JAnderson419 ([PyPI `ferro`](https://pypi.org/project/ferro/)) handles reading PV, PUND and IV test data and includes a simple Preisach model. This repository focuses instead on switching-kinetics models (KAI / NLS / Merz) and their fitting, Landau–Khalatnikov and Preisach / FORC simulation, and a dynamic multi-domain NLS capacitor model with a verified Verilog-A implementation.
 
 ## References
 
@@ -117,7 +246,9 @@ The Python package Ferro by JAnderson419 ([PyPI `ferro`](https://pypi.org/projec
 - J. Y. Jo et al., Phys. Rev. Lett. 99, 267602 (2007).
 - W. J. Merz, Phys. Rev. 95, 690 (1954).
 - T. S. Böscke et al., Appl. Phys. Lett. 99, 102903 (2011) — ferroelectricity in HfO₂ thin films.
+- Alessandri et al., IEEE Electron Device Lett. 39, 1780 (2018); Alessandri, Pandey, Seabaugh, IEDM 2018; Alessandri et al., IEEE Trans. Electron Devices 66, 3527 (2019) — the dynamic NLS model and the switching parameters of the generic card.
+- Further references of the multi-domain model (C–V, leakage, back-switching, read endurance): [spice/README.md](spice/README.md#references).
 
-## 授權
+## License
 
-以 [MIT License](LICENSE) 釋出。
+Released under the [MIT License](LICENSE).

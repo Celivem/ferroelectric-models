@@ -1,0 +1,15 @@
+# Duan et al., "Towards Scalable 3D Integration of 2T-nC FeRAM with Hundreds of Layer Stacking", IEDM 2025
+# (OSTI purl 3029551), Fig. 9: read current of the two stored states versus number of reads, with the floating
+# node either discharged between reads ("discharge") or left floating ("wait"). Area ratio AR = 0.83.
+# Device: W/HZO 10 nm/W capacitor on the gate of a read transistor with 10 nm HfO2 gate dielectric.
+# Read voltage and discharge time are not given for Fig. 9 (Fig. 5f uses about 2.5 V, 8-10 us reads).
+# Type: digitized from figure, approx. (Fig. 9b is labelled uA on its axis; unit taken as A as in Fig. 9a).
+mode,n_reads,I_state0_A,I_state1_A
+wait,1,7e-5,5e-8
+wait,10,6e-5,1.8e-8
+wait,100,3.5e-5,1.8e-8
+wait,1000,1.2e-5,1.8e-8
+discharge,1,7e-5,9e-7
+discharge,10,7e-6,1.4e-6
+discharge,100,1.6e-6,1.5e-6
+discharge,1000,1.5e-6,1.5e-6

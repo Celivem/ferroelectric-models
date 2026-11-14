@@ -1,0 +1,19 @@
+# Lancaster et al., Front. Nanotechnol. 4, 939822 (2022), doi:10.3389/fnano.2022.939822, Figs. 3a, 3b, 4a
+# Device: TiN/HZO 11 nm/TiN (no Al2O3), 200 um diameter, woken up 1000 cycles at 100 kHz, 300 K.
+# Full switching at 3.5 V with pulse width t_write, wait t_delay, then a PUND-type pulse pair measures
+# the back-switched polarization P_loss (rising-edge integral).
+# Type: digitized from figure, approx. 25 us: mean of the P_down / P_up curves of Fig. 4a;
+# 100 us: mean of Fig. 3a (P_up) and Fig. 3b (P_down); 250 us: Fig. 4a.
+t_write_s,t_delay_s,P_loss_uC_cm2
+25e-6,3e-7,0.30
+25e-6,1e-5,1.10
+25e-6,1e-3,1.50
+25e-6,1.0,1.35
+100e-6,3e-7,0.225
+100e-6,1e-5,0.50
+100e-6,1e-3,0.925
+100e-6,1.0,0.925
+250e-6,3e-7,0.15
+250e-6,1e-5,0.30
+250e-6,1e-3,0.75
+250e-6,1.0,0.85

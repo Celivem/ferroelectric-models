@@ -1,0 +1,9 @@
+# Mukherjee et al., IEEE Electron Device Lett. 44, 1092 (2023), doi:10.1109/LED.2023.3278599, Fig. 2 (Dev A, TiN/TiN electrodes)
+# Type: digitized from figure, approx. Symmetric electrodes: the two branches cross at about 0 MV/cm.
+# branch: up = branch that softens toward negative field; down = mirror image.
+E_MV_cm,branch,eps_r,note
+0.0,both,35.0,crossing point
+-0.7,up,40.0,peak
+0.7,down,40.0,peak
+3.0,up,27.5,far side
+-3.0,down,27.5,far side

@@ -1,0 +1,13 @@
+# Mukherjee et al., IEDM 2023, doi:10.1109/IEDM45741.2023.10413879, Fig. 5a (C-V of the two polarization states)
+# Device: TiN/MoOx 2 nm/La:HZO 9 nm/Nb2O5 2 nm/TiN, A_FE = 60 x 80 um^2; 10 kHz, 100 mV small signal.
+# Type: digitized from figure, approx. (x axis calibrated on the +-1.5 MV/cm grid lines).
+# branch: up = state with eps_+ (softens toward negative field), down = state with eps_-.
+# The crossing point (both branches) is at E_CROSS = +0.87 MV/cm.
+E_MV_cm,branch,eps_r,note
+0.87,both,36.0,crossing point E_CROSS
+0.0,up,39.9,eps_+(0 V) (Fig. 5d mean)
+0.0,down,31.2,eps_-(0 V) (Fig. 5d mean)
+-0.48,up,43.0,peak of the eps_+ branch
+1.39,down,41.0,peak of the eps_- branch
+-2.7,down,27.3,sweep end
+2.8,up,33.0,sweep end

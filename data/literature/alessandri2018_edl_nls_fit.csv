@@ -1,0 +1,17 @@
+# Alessandri et al., IEEE Electron Device Lett. 39, 1780 (2018), doi:10.1109/LED.2018.2872124
+# Device: W/HZO 8 nm/W, 60 um diameter; pulse switching 200 ns - 7.6 ms, 0.8 - 2 V.
+# Type: published fit formula and fitted parameters (values as reported in the paper's text), not measured points.
+# Model of the paper: P(E,t) = -Ps + 2 Ps int_0^inf {1 - exp[-(t/tau)^beta]} f(eta) d eta,
+#   tau = tau_inf exp[(Ea/(eta E))^alpha], f(eta) = GB2(eta | a, b, p, q).
+# examples/literature_comparison.py regenerates switching curves from these numbers.
+parameter,value,unit,note
+thickness,8.0,nm,film thickness
+Ps,26.4,uC/cm^2,saturation polarization
+tau_inf,236e-9,s,attempt time
+Ea,2.42,MV/cm,activation field
+alpha,3.73,1,Merz-type exponent
+beta,2.06,1,Weibull exponent
+gb2_a,9.0986,1,GB2 of eta
+gb2_b,1.3935,1,GB2 of eta
+gb2_p,1.1101,1,GB2 of eta
+gb2_q,15.197,1,GB2 of eta
