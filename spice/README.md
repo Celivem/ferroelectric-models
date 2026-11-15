@@ -128,8 +128,8 @@ N<name> <p> <n> <qm> <model> [s0=<-1..1>] [area=<m^2>] [sg0=<-1..1>]
 
 | Terminal | Meaning |
 |---|---|
-| `p`, `n` | Capacitor terminals. $V = V(p,n) > 0$ drives the polarization toward +. The current into `p` is $I = A\,[\mathrm{d}(P+q_{rev})/\mathrm{d}t + J_L(V)]$. |
-| `qm` | Monitor output. $V(qm)$ = terminal charge density $P + q_{rev}$ in µC/cm² (1 V ≙ 1 µC/cm²), driven by an ideal source inside the model; leave it open. At 0 V (with $y = 0$) it equals the remanent polarization $P_s\bar x$, so the mean state is $\bar x = V(qm)/(100\,P_s)$ with $P_s$ in C/m². Reading the charge directly avoids integrating the current. |
+| `p`, `n` | Capacitor terminals. $`V = V(p,n) > 0`$ drives the polarization toward +. The current into `p` is $`I = A\,[\mathrm{d}(P+q_{rev})/\mathrm{d}t + J_L(V)]`$. |
+| `qm` | Monitor output. $`V(qm)`$ = terminal charge density $`P + q_{rev}`$ in µC/cm² (1 V ≙ 1 µC/cm²), driven by an ideal source inside the model; leave it open. At 0 V (with $`y = 0`$) it equals the remanent polarization $`P_s\bar x`$, so the mean state is $`\bar x = V(qm)/(100\,P_s)`$ with $`P_s`$ in C/m². Reading the charge directly avoids integrating the current. |
 
 Instance parameters: `s0` (initial state of every domain class, default −1),
 `area` (m², default 1×10⁻¹⁰), `sg0` (initial screening state as a fraction of
@@ -143,24 +143,24 @@ all default to 0. All other parameters are model parameters.
 
 | Quantity | Nodes | Meaning |
 |---|---|---|
-| $s_k$, $k = 1..N_d$ | `sn[k]` | switching state of domain class $k$, from −1 (all down) to +1 (all up) |
-| $h_k$ | `hn[k]` | signed nucleation progress of class $k$ (only used for $\beta > 1$) |
-| $y$ | `yn` | low-pass filtered voltage (slow part of the reversible response) |
-| $\sigma$ | `gn` | screening state (only active when $V_{dep} \ne 0$) |
-| $\pi$, $r$ | `pn`, `prn` | polarization and frozen reversible charge of the pinned pool (E13) |
-| $a_w$, $a_F$ | `awn`, `afn` | wake-up and fatigue ages (E14, E15) |
-| $\sigma_j$, $j = 1..N_I$ | `imn[j]` | imprint (trapping) states (E17) |
-| $z_j$, $j = 1..N_Q$ | `dqn[j]` | depinning states of the reversible wake-up pool (E18) |
-| $V_L$ | `fln` | lagged voltage for the fatigue-stress build-up (E19) |
+| $`s_k`$, $`k = 1..N_d`$ | `sn[k]` | switching state of domain class $`k`$, from −1 (all down) to +1 (all up) |
+| $`h_k`$ | `hn[k]` | signed nucleation progress of class $`k`$ (only used for $`\beta > 1`$) |
+| $`y`$ | `yn` | low-pass filtered voltage (slow part of the reversible response) |
+| $`\sigma`$ | `gn` | screening state (only active when $`V_{dep} \ne 0`$) |
+| $`\pi`$, $`r`$ | `pn`, `prn` | polarization and frozen reversible charge of the pinned pool (E13) |
+| $`a_w`$, $`a_F`$ | `awn`, `afn` | wake-up and fatigue ages (E14, E15) |
+| $`\sigma_j`$, $`j = 1..N_I`$ | `imn[j]` | imprint (trapping) states (E17) |
+| $`z_j`$, $`j = 1..N_Q`$ | `dqn[j]` | depinning states of the reversible wake-up pool (E18) |
+| $`V_L`$ | `fln` | lagged voltage for the fatigue-stress build-up (E19) |
 
-$N_d$ = `FE_ND` (compile-time, default 16), $N_I$ = `FE_NI` (default 12) and
-$N_Q$ = `FE_NQ` (default 8), so the model has $2N_d + 2 = 34$ core internal
-nodes, $5 + N_I + N_Q = 25$ history nodes and the monitor branch. A history
-node whose term is off obeys $\mathrm{d}X/\mathrm{d}t = 0$ from 0 and affects
-nothing else. Each state obeys $\mathrm{d}X/\mathrm{d}t = f(X)$,
+$`N_d`$ = `FE_ND` (compile-time, default 16), $`N_I`$ = `FE_NI` (default 12) and
+$`N_Q`$ = `FE_NQ` (default 8), so the model has $`2N_d + 2 = 34`$ core internal
+nodes, $`5 + N_I + N_Q = 25`$ history nodes and the monitor branch. A history
+node whose term is off obeys $`\mathrm{d}X/\mathrm{d}t = 0`$ from 0 and affects
+nothing else. Each state obeys $`\mathrm{d}X/\mathrm{d}t = f(X)`$,
 written as `I(node) <+ 1e-6*(ddt(V(node)) - f)`. During a static analysis (and
 at the transient operating point) every state is pinned to its initial value:
-$s_k = s_0$, $h_k = 0$, $y = V$, $\sigma = s_0\,\mathrm{sg0}$.
+$`s_k = s_0`$, $`h_k = 0`$, $`y = V`$, $`\sigma = s_0\,\mathrm{sg0}`$.
 
 ## Equations
 
@@ -169,69 +169,95 @@ The derivation and the reasons for each choice are in
 [docs/model-derivation.md](../docs/model-derivation.md).
 
 **(E4) Domain classes.** Activation fields follow a Dagum distribution (a
-generalized beta of the second kind with $q = 1$), whose quantile has a closed form:
+generalized beta of the second kind with $`q = 1`$), whose quantile has a closed form:
 
-$$G(E) = \left[1 + (E/b)^{-a}\right]^{-p} \quad\Longleftrightarrow\quad E(q) = b\left[q^{-1/p} - 1\right]^{-1/a}.$$
+```math
+G(E) = \left[1 + (E/b)^{-a}\right]^{-p} \quad\Longleftrightarrow\quad E(q) = b\left[q^{-1/p} - 1\right]^{-1/a}.
+```
 
-The quantile axis is sampled on a logit grid $y = \ln[q/(1-q)]$ with cell edges
-$y_j = y_m \sinh(a_g\xi_j)/\sinh a_g$, $\xi_j$ uniform on $[-1, 1]$; the outer
-edges are moved to $q = 0$ and $q = 1$, the weights are $w_k = q_{j+1} - q_j$ and
-class $k$ uses the mid-point quantile $q_k$. Its activation voltages are
+The quantile axis is sampled on a logit grid $`y = \ln[q/(1-q)]`$ with cell edges
+$`y_j = y_m \sinh(a_g\xi_j)/\sinh a_g`$, $`\xi_j`$ uniform on $`[-1, 1]`$; the outer
+edges are moved to $`q = 0`$ and $`q = 1`$, the weights are $`w_k = q_{j+1} - q_j`$ and
+class $`k`$ uses the mid-point quantile $`q_k`$. Its activation voltages are
 
-$$V_{a,k}^{\pm} = E^{\pm}(q_k)\, t_{fe}\, m_E\,[1 + c_E (T - T_0)].$$
+```math
+V_{a,k}^{\pm} = E^{\pm}(q_k)\, t_{fe}\, m_E\,[1 + c_E (T - T_0)].
+```
 
 **(E5) Mean state and polarization.**
 
-$$\bar x = \sum_k w_k s_k, \qquad P = P_s\, m_P\,[1 + c_P (T - T_0)]\,\bar x .$$
+```math
+\bar x = \sum_k w_k s_k, \qquad P = P_s\, m_P\,[1 + c_P (T - T_0)]\,\bar x .
+```
 
 **(E1) Drive seen by class k.**
 
-$$u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k, \qquad \delta_k = s_b \ln\frac{\phi_k}{1-\phi_k},\ \ \phi_k = \mathrm{frac}(0.618\ldots\,k).$$
+```math
+u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k, \qquad \delta_k = s_b \ln\frac{\phi_k}{1-\phi_k},\ \ \phi_k = \mathrm{frac}(0.618\ldots\,k).
+```
 
-**(E2) One-directional Merz-type rates** ($\tau = \tau_0[1 + c_\tau(T - T_0)]$):
+**(E2) One-directional Merz-type rates** ($`\tau = \tau_0[1 + c_\tau(T - T_0)]`$):
 
-$$R_k^{+} = \frac{1}{\tau}\exp\left[-\left(\frac{V_{a,k}^{+}}{u_k}\right)^{\alpha}\right]\ (u_k > 0), \qquad R_k^{-} = \frac{1}{\tau}\exp\left[-\left(\frac{V_{a,k}^{-}}{|u_k|}\right)^{\alpha}\right]\ (u_k < 0),$$
+```math
+R_k^{+} = \frac{1}{\tau}\exp\left[-\left(\frac{V_{a,k}^{+}}{u_k}\right)^{\alpha}\right]\ (u_k > 0), \qquad R_k^{-} = \frac{1}{\tau}\exp\left[-\left(\frac{V_{a,k}^{-}}{|u_k|}\right)^{\alpha}\right]\ (u_k < 0),
+```
 
 and zero otherwise. A rate whose exponent is below −60 is set to exactly zero.
 
-**(E3) Switching states (Weibull hazard).** With $h_k^{+} = \max(h_k, 0)$ and $h_k^{-} = \max(-h_k, 0)$,
+**(E3) Switching states (Weibull hazard).** With $`h_k^{+} = \max(h_k, 0)`$ and $`h_k^{-} = \max(-h_k, 0)`$,
 
-$$\frac{\mathrm{d}s_k}{\mathrm{d}t} = r_k^{+}(1 - s_k) - r_k^{-}(1 + s_k), \qquad r_k^{\pm} = \beta R_k^{\pm}\,(h_k^{\pm})^{\beta-1}.$$
+```math
+\frac{\mathrm{d}s_k}{\mathrm{d}t} = r_k^{+}(1 - s_k) - r_k^{-}(1 + s_k), \qquad r_k^{\pm} = \beta R_k^{\pm}\,(h_k^{\pm})^{\beta-1}.
+```
 
-$(h^{\pm})^{\beta-1}$ is replaced by a linear function below $h = 10^{-6}$ so that its
-slope at $h = 0$ stays finite. For $\beta = 1$, $r^{\pm} = R^{\pm}$.
+$`(h^{\pm})^{\beta-1}`$ is replaced by a linear function below $`h = 10^{-6}`$ so that its
+slope at $`h = 0`$ stays finite. For $`\beta = 1`$, $`r^{\pm} = R^{\pm}`$.
 
 **(E3b) Progress variable.**
 
-$$\frac{\mathrm{d}h_k}{\mathrm{d}t} = R_k^{+}\left[1 - \left(\frac{h_k^{+}}{h_m}\right)^{4}\right] - R_k^{-}\left[1 - \left(\frac{h_k^{-}}{h_m}\right)^{4}\right] - \frac{h_k}{\tau_h^{eff}} + \frac{1}{\tau_x}\left[G(u_k - u_x)\,h_k^{-} - G(-u_k - u_x)\,h_k^{+}\right],$$
+```math
+\frac{\mathrm{d}h_k}{\mathrm{d}t} = R_k^{+}\left[1 - \left(\frac{h_k^{+}}{h_m}\right)^{4}\right] - R_k^{-}\left[1 - \left(\frac{h_k^{-}}{h_m}\right)^{4}\right] - \frac{h_k}{\tau_h^{eff}} + \frac{1}{\tau_x}\left[G(u_k - u_x)\,h_k^{-} - G(-u_k - u_x)\,h_k^{+}\right],
+```
 
-$$\tau_h^{eff} = \tau_h\left[1 + \left(\frac{V - V_{imp}}{V_g}\right)^{4}\right], \qquad G(z) = \tfrac12\left[1 + \tanh(z/w_x)\right], \qquad u_x = |V_{imp}| + 0.1\ \mathrm{V},$$
+```math
+\tau_h^{eff} = \tau_h\left[1 + \left(\frac{V - V_{imp}}{V_g}\right)^{4}\right], \qquad G(z) = \tfrac12\left[1 + \tanh(z/w_x)\right], \qquad u_x = |V_{imp}| + 0.1\ \mathrm{V},
+```
 
-with $h_m = 5$ (argument capped at 6), $V_g = 0.1$ V, $w_x = 10$ mV, $\tau_x = 0.1$ ns.
-Under a constant drive from a saturated state $h_k = R_k t$, so (E3) gives the
-single-pulse NLS form $f(t) = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}$.
+with $`h_m = 5`$ (argument capped at 6), $`V_g = 0.1`$ V, $`w_x = 10`$ mV, $`\tau_x = 0.1`$ ns.
+Under a constant drive from a saturated state $`h_k = R_k t`$, so (E3) gives the
+single-pulse NLS form $`f(t) = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}`$.
 
 **(E7) Low-pass voltage and (E12) screening state.**
 
-$$\tau_r \frac{\mathrm{d}y}{\mathrm{d}t} = V - y, \qquad \tau_s \frac{\mathrm{d}\sigma}{\mathrm{d}t} = \bar x - \sigma .$$
+```math
+\tau_r \frac{\mathrm{d}y}{\mathrm{d}t} = V - y, \qquad \tau_s \frac{\mathrm{d}\sigma}{\mathrm{d}t} = \bar x - \sigma .
+```
 
 **(E6) Reversible charge.** Two branches (integrated Lorentzians):
 
-$$g_{\uparrow}(V) = \Delta C\, V_w\left[\arctan\frac{V - V_i + V_s}{V_w} - \arctan\frac{-V_i + V_s}{V_w}\right], \qquad g_{\downarrow}(V) = \Delta C\, V_w\left[\arctan\frac{V - V_i - V_s}{V_w} - \arctan\frac{-V_i - V_s}{V_w}\right],$$
+```math
+g_{\uparrow}(V) = \Delta C\, V_w\left[\arctan\frac{V - V_i + V_s}{V_w} - \arctan\frac{-V_i + V_s}{V_w}\right], \qquad g_{\downarrow}(V) = \Delta C\, V_w\left[\arctan\frac{V - V_i - V_s}{V_w} - \arctan\frac{-V_i - V_s}{V_w}\right],
+```
 
-$\bar g = (g_\uparrow + g_\downarrow)/2$, $g_d = (g_\uparrow - g_\downarrow)/2$, $k_C = 1 + c_C(T - T_0)$:
+$`\bar g = (g_\uparrow + g_\downarrow)/2`$, $`g_d = (g_\uparrow - g_\downarrow)/2`$, $`k_C = 1 + c_C(T - T_0)`$:
 
-$$q_{rev} = k_C\left\{C_d V + f_{rev}\left[\bar g(V) + \bar x\, g_d(V)\right] + (1 - f_{rev})\left[\bar g(y) + \bar x\, g_d(y)\right]\right\} + \left[C_w(1 - \bar x^2) + C_r\right] y .$$
+```math
+q_{rev} = k_C\left\{C_d V + f_{rev}\left[\bar g(V) + \bar x\, g_d(V)\right] + (1 - f_{rev})\left[\bar g(y) + \bar x\, g_d(y)\right]\right\} + \left[C_w(1 - \bar x^2) + C_r\right] y .
+```
 
 **(E8) Terminal current.**
 
-$$I = A\,\frac{\mathrm{d}}{\mathrm{d}t}\left[P + q_{rev}\right] + A\, J_L(V, T).$$
+```math
+I = A\,\frac{\mathrm{d}}{\mathrm{d}t}\left[P + q_{rev}\right] + A\, J_L(V, T).
+```
 
-**(E9) Leakage** (one parameter set for each polarity; $V_{th} = k_BT/q$,
-$E_s = \sqrt{(V/t_{fe})^2 + E_0^2}$, $\beta_S = \sqrt{q/(4\pi\varepsilon_0\varepsilon_{op})}$,
-$\Delta = 1/V_{th,0} - 1/V_{th}$, exponents capped at 80):
+**(E9) Leakage** (one parameter set for each polarity; $`V_{th} = k_BT/q`$,
+$`E_s = \sqrt{(V/t_{fe})^2 + E_0^2}`$, $`\beta_S = \sqrt{q/(4\pi\varepsilon_0\varepsilon_{op})}`$,
+$`\Delta = 1/V_{th,0} - 1/V_{th}`$, exponents capped at 80):
 
-$$J_L = G_\Omega V e^{\phi_\Omega\Delta} + \tanh\frac{V}{V_{th}}\left[\sigma_{PF} E_s e^{\phi_t\Delta} e^{2\beta_S(\sqrt{E_s} - \sqrt{E_0})/V_{th}} + J_S\left(\frac{T}{T_0}\right)^2 e^{\phi_b\Delta}\left(e^{\beta_S(\sqrt{E_s} - \sqrt{E_0})/V_{th}} - 1\right) + J_T e^{-E_T/E_s}\right].$$
+```math
+J_L = G_\Omega V e^{\phi_\Omega\Delta} + \tanh\frac{V}{V_{th}}\left[\sigma_{PF} E_s e^{\phi_t\Delta} e^{2\beta_S(\sqrt{E_s} - \sqrt{E_0})/V_{th}} + J_S\left(\frac{T}{T_0}\right)^2 e^{\phi_b\Delta}\left(e^{\beta_S(\sqrt{E_s} - \sqrt{E_0})/V_{th}} - 1\right) + J_T e^{-E_T/E_s}\right].
+```
 
 The three bracketed terms are Poole–Frenkel, Schottky and an effective
 trap-assisted-tunnelling form. Only ohmic + Poole–Frenkel are on by default.
@@ -240,58 +266,64 @@ trap-assisted-tunnelling form. Only ohmic + Poole–Frenkel are on by default.
 
 The reasons for each form, the fits and the alternatives that failed are in
 Section 4 of the [derivation article](../docs/model-derivation.md#4-cycling-and-storage-history-optional)
-and in [`docs/research/`](../docs/research/). $a(t) = \sum_k w_k|\dot s_k|$ is
-the switching rate (4 per full cycle), $E_s = \sqrt{(\rho V/t_{fe})^2 + E_{fl}^2}$,
-$A_X(T) = \exp[-(E_X/k_B)(1/T - 1/T_0)]$, and $g(a) = (a + a_\epsilon)^{\kappa} - a_\epsilon^{\kappa}$
-with $a_\epsilon = 10^{-4}$.
+and in [`docs/research/`](../docs/research/). $`a(t) = \sum_k w_k|\dot s_k|`$ is
+the switching rate (4 per full cycle), $`E_s = \sqrt{(\rho V/t_{fe})^2 + E_{fl}^2}`$,
+$`A_X(T) = \exp[-(E_X/k_B)(1/T - 1/T_0)]`$, and $`g(a) = (a + a_\epsilon)^{\kappa} - a_\epsilon^{\kappa}`$
+with $`a_\epsilon = 10^{-4}`$.
 
-**(E13) Pinned pool.** A fraction $f$ of the domains is pinned; the rest switch
+**(E13) Pinned pool.** A fraction $`f`$ of the domains is pinned; the rest switch
 as above. The terminal charge becomes
 
-$$\frac{Q}{A} = P_s\left[(1-f)\bar x + \pi\right] + C_dV + (1-f)\,q_2 + r + \dots,\qquad \dot\pi = \dot f^{+}\bar x - \dot f^{-}\frac{\pi}{f},\qquad \dot r = \dot f^{+} q_2 - \dot f^{-}\frac{r}{f},$$
+```math
+\frac{Q}{A} = P_s\left[(1-f)\bar x + \pi\right] + C_dV + (1-f)\,q_2 + r + \dots,\qquad \dot\pi = \dot f^{+}\bar x - \dot f^{-}\frac{\pi}{f},\qquad \dot r = \dot f^{+} q_2 - \dot f^{-}\frac{r}{f},
+```
 
 and released domains return with the pool's mean state:
-$\dot s_k \mathrel{+}= \dot f^{-}(\pi/f - s_k)/(1-f)$. Pinning and release never
+$`\dot s_k \mathrel{+}= \dot f^{-}(\pi/f - s_k)/(1-f)`$. Pinning and release never
 change the terminal charge by themselves.
 
-**(E14) Wake-up.** $\dot a_w = A_w(T)\,a(t)/(4N_w)$, $W = 1 - e^{-g(a_w)}$ with
-$\kappa = \kappa_w$. Pristine pinned fraction $f_w = f_{p0}(1-W)$; pristine
-bias split $\pm V_{sp}(1-W)$ on alternating classes.
+**(E14) Wake-up.** $`\dot a_w = A_w(T)\,a(t)/(4N_w)`$, $`W = 1 - e^{-g(a_w)}`$ with
+$`\kappa = \kappa_w`$. Pristine pinned fraction $`f_w = f_{p0}(1-W)`$; pristine
+bias split $`\pm V_{sp}(1-W)`$ on alternating classes.
 
-**(E15) Fatigue.** $\dot a_F = A_F(T)\,(E_s/E_{ref})^{n_F}\left[1/t_F + a(t)/(4N_F)\right]$
-with $E_{ref}$ = 1 MV/cm; damage $D = D_{max}[1 - e^{-g(a_F)}]$ with
-$\kappa = \kappa_F$; the activation fields of switching domains are multiplied
-by $1 + k_E D$.
+**(E15) Fatigue.** $`\dot a_F = A_F(T)\,(E_s/E_{ref})^{n_F}\left[1/t_F + a(t)/(4N_F)\right]`$
+with $`E_{ref}`$ = 1 MV/cm; damage $`D = D_{max}[1 - e^{-g(a_F)}]`$ with
+$`\kappa = \kappa_F`$; the activation fields of switching domains are multiplied
+by $`1 + k_E D`$.
 
 **(E16, with E18) Total pinned fraction.**
-$f = 1 - (1 - f_w)\left[1 - f_q(1 - Z)\right](1 - D)$.
+$`f = 1 - (1 - f_w)\left[1 - f_q(1 - Z)\right](1 - D)`$.
 
-**(E17) Logarithmic-time imprint.** $N_I$ states with time constants spaced
-logarithmically in $[\tau_{I1}, \tau_{I2}]$, each scaled by $e^{(E_I/k_B)(1/T - 1/T_0)}$:
+**(E17) Logarithmic-time imprint.** $`N_I`$ states with time constants spaced
+logarithmically in $`[\tau_{I1}, \tau_{I2}]`$, each scaled by $`e^{(E_I/k_B)(1/T - 1/T_0)}`$:
 
-$$\tau_j\dot\sigma_j = c(V)\,(x_t - \sigma_j),\qquad x_t = (1-f)\bar x + \pi,\qquad \sigma_I = \frac{1}{N_I}\sum_j\sigma_j,$$
+```math
+\tau_j\dot\sigma_j = c(V)\,(x_t - \sigma_j),\qquad x_t = (1-f)\bar x + \pi,\qquad \sigma_I = \frac{1}{N_I}\sum_j\sigma_j,
+```
 
-with $c(V) = 1$ unless E17b is on. The built-in voltage becomes
-$V_{imp} - V_I\sigma_I$ in (E1), in both gates of (E3b) and in the centre of the
+with $`c(V) = 1`$ unless E17b is on. The built-in voltage becomes
+$`V_{imp} - V_I\sigma_I`$ in (E1), in both gates of (E3b) and in the centre of the
 reversible branches.
 
 **(E17a) Branch asymmetry.** Both switching fields move outward by
-$w = \kappa_I V_I(\sqrt{\sigma_I^2 + e^2} - e)$, $e = 10^{-3}$: the + rate uses
-$u - w$, the − rate $-u - w$; the branch distance $V_s$ grows by $w/\rho$.
+$`w = \kappa_I V_I(\sqrt{\sigma_I^2 + e^2} - e)`$, $`e = 10^{-3}`$: the + rate uses
+$`u - w`$, the − rate $`-u - w`$; the branch distance $`V_s`$ grows by $`w/\rho`$.
 
-**(E17b) Field acceleration.** $c(V) = \cosh(\rho V/V_a)$ (argument capped at 80).
+**(E17b) Field acceleration.** $`c(V) = \cosh(\rho V/V_a)`$ (argument capped at 80).
 
-**(E18) Reversible depinning.** $N_Q$ states $z_j$ with time constants spaced
-logarithmically in $[\tau_{q1}, \tau_{q2}]$:
+**(E18) Reversible depinning.** $`N_Q`$ states $`z_j`$ with time constants spaced
+logarithmically in $`[\tau_{q1}, \tau_{q2}]`$:
 
-$$\tau_j\dot z_j = A_w(T)\left[\phi(V)(1 - z_j) - \left(\rho_q + t_r\frac{a(t)}{4}\right)z_j\right],\qquad \phi(V) = \left(\frac{E_s}{E_{ref}}\right)^{n_q} - \phi_{fl},\qquad Z = \frac{1}{N_Q}\sum_j z_j,$$
+```math
+\tau_j\dot z_j = A_w(T)\left[\phi(V)(1 - z_j) - \left(\rho_q + t_r\frac{a(t)}{4}\right)z_j\right],\qquad \phi(V) = \left(\frac{E_s}{E_{ref}}\right)^{n_q} - \phi_{fl},\qquad Z = \frac{1}{N_Q}\sum_j z_j,
+```
 
-where $\phi_{fl}$ makes $\phi(0) = 0$.
+where $`\phi_{fl}`$ makes $`\phi(0) = 0`$.
 
-**(E19) Fatigue-stress build-up.** $t_L\dot V_L = V - V_L$ and, in (E15),
-$E_s^2 = \max(\rho^2 V V_L/t_{fe}^2, 0) + E_{fl}^2$.
+**(E19) Fatigue-stress build-up.** $`t_L\dot V_L = V - V_L`$ and, in (E15),
+$`E_s^2 = \max(\rho^2 V V_L/t_{fe}^2, 0) + E_{fl}^2`$.
 
-**(E20) Leakage growth.** $J_L \to J_L\,(1 + k_L a_F^{\,m_L})$.
+**(E20) Leakage growth.** $`J_L \to J_L\,(1 + k_L a_F^{\,m_L})`$.
 
 ## Parameters
 
@@ -300,54 +332,54 @@ off published figures and are approximate.
 
 | Symbol | `.va` name | Unit | Default | Meaning | Source |
 |---|---|---|---|---|---|
-| $A$ | `area` | m² | 1e-10 | capacitor area (instance) | illustrative (10 µm × 10 µm) |
-| $t_{fe}$ | `tfe` | m | 1e-08 | ferroelectric thickness | illustrative; 8–10 nm is typical of the cited HZO films [Alessandri2018, Alessandri2019] |
-| $T_0$ | `t0` | K | 298.15 | reference temperature | 25 °C (convention) |
-| $s_0$ | `s0` | 1 | −1 | initial state of every class (instance) | instance setting |
-| — | `sg0` | 1 | 0 | initial screening state, $\sigma(0) = s_0\,\mathrm{sg0}$ (instance) | 0 = cycled film (average of both states) |
-| $P_s$ | `ps` | C/m² | 0.229 | saturation polarization | $P_R$ = 22.9 µC/cm², Table I of [Alessandri2019] (W/HZO 8.3 nm/W) |
-| $b^+$ | `emp` | V/m | 1.775e8 | Dagum scale of the activation field (+ direction) | Dagum fit to the GB2 $g(E'_a)$ of [Alessandri2019] Table I ($a$ = 12.1, $b$ = 1.79 MV/cm, $p$ = 0.691, $q$ = 0.633) |
-| $b^-$ | `emn` | V/m | 1.775e8 | Dagum scale, − direction | same as `emp` ([Alessandri2019] does not separate polarities) |
-| $a^+$ | `ap` | 1 | 8.68 | Dagum shape (core width), + direction | same Dagum fit |
-| $a^-$ | `an` | 1 | 8.68 | Dagum shape, − direction | same Dagum fit |
-| $p$ | `pt` | 1 | 1.136 | Dagum shape; low-field tail $G \approx (E/b)^{ap}$ | same Dagum fit; tail exponent $ap$ = 9.9 (the [Alessandri2018] distribution gives about 87) |
-| $\alpha$ | `alpha` | 1 | 4.11 | Merz-type exponent | [Alessandri2019] Table I; 3.7–5.5 in [Alessandri2018, AlessandriIEDM2018] |
-| $\beta$ | `beta` | 1 | 2.07 | Weibull exponent (nucleation incubation) | [Alessandri2019] Table I; 2.06 in [Alessandri2018]; 2 in [Jo2007] |
-| $\tau_0$ | `tau0` | s | 3.87e-7 | attempt time ($\tau_\infty$ of the Merz-type law) | [Alessandri2019] Table I (387 ns); 236 ns in [Alessandri2018]; strongly device dependent |
-| $\tau_h$ | `tau_h` | s | 3.7e-6 | relaxation time of $h$ without drive | geometric mean of 1.7 µs and 8.3 µs, the single-exponential times implied by γ = 0.55 (1 µs off) and 0.3 (10 µs off) in Eq. 14 of [Alessandri2019] |
-| $V_{imp}$ | `vimp` | V | −0.08 | built-in (imprint) voltage; loop centre | $V_{OS}$ = 80 mV in [Alessandri2019] ($V_{FE} = V_A + V_{OS}$) |
-| $\rho$ | `rho` | 1 | 1 | voltage division $C_i/(C_i + C_f)$ by an interface layer | 1 = no interface layer (limit of the charge balance in [Tian2025]) |
-| $V_{dep}$ | `vdep` | V | 0 | depolarization voltage (back-switching) | off by default; a fit to [Lancaster2022] gives about 1 V (see below) |
-| $\tau_s$ | `tau_s` | s | 1e-4 | screening time constant | illustrative; inactive while `vdep` = 0; the fit to [Lancaster2022] gives 1.7 ms |
-| $s_b$ | `sb` | V | 0 | spread of per-class offsets $\delta_k$ | off by default |
-| $C_d$ | `c_d` | F/m² | 0.02055 | (1) linear dielectric capacitance ($\varepsilon_r \approx 23$ at 10 nm) | fit of one Lorentzian branch to C–V values digitized from Fig. 2 (Dev A, TiN/TiN) of [Mukherjee2023EDL]; width from Fig. 5a of [Mukherjee2023IEDM] |
-| $\Delta C$ | `dcap` | F/m² | 0.03023 | (2) peak height of each reversible branch | same fit |
-| $f_{rev}$ | `frev` | 1 | 1 | instantaneous fraction of term (2) | placeholder; the time scale is unresolved ([Baigol2026] vs. [Mukherjee2023IEDM]) |
-| $C_w$ | `c_w` | F/m² | 0 | (3) reversible domain-wall capacitance, weighted $(1 - \bar x^2)$ | off by default |
-| $V_w$ | `vw` | V | 2.236 | half width of each branch | 2.24 MV/cm × 10 nm, fit to Fig. 5a of [Mukherjee2023IEDM] (digitized) |
-| $V_s$ | `vs` | V | 3.006 | distance of each branch peak from $V_i$ | same fit as `c_d` (3.0 MV/cm × 10 nm) |
-| $V_i$ | `vi` | V | 0 | crossing voltage of the two branches | ≈ 0 for symmetric electrodes ([Mukherjee2023EDL] Dev A) |
-| $C_r$ | `c_r` | F/m² | 0 | state-independent slow capacitance | off by default |
-| $\tau_r$ | `tau_r` | s | 1e-7 | low-pass time constant of $y$ | inactive while `frev` = 1 and `c_w` = `c_r` = 0; order of magnitude from the > 2 MHz roll-off in [Baigol2026] (inference) |
-| $G_\Omega$ | `g_oh` | A/m²/V | 1e-4 | ohmic leakage conductance | low-voltage end of the 0–2 V leakage range in Fig. 6a of [Fehlings2025b] (digitized) |
-| $\phi_\Omega$ | `phi_oh` | eV | 0 | activation energy of $G_\Omega$ | placeholder (no source found) |
-| $\sigma_{PF}^\pm$ | `spf_p`, `spf_n` | S/m | 4.8e-12 | Poole–Frenkel prefactor | scaled so that $J$(2 V) = 0.1 A/m², the upper end of Fig. 6a of [Fehlings2025b] (digitized) |
-| $\phi_t^\pm$ | `phit_p`, `phit_n` | eV | 0.68 | Poole–Frenkel trap depth | $\phi_{tr,fe}$ = 0.68 eV, Table 1 of [Fehlings2024] (model fit, W/HZO 9.8 nm/W) |
-| $\varepsilon_{op}$ | `eps_op` | 1 | 70 | permittivity in the barrier lowering | $\varepsilon_{fe}$ = 70 as used in the PF term of [Fehlings2024] |
-| $J_S^\pm$ | `js_p`, `js_n` | A/m² | 0 | Schottky prefactor at $T_0$ | off by default |
-| $\phi_b^\pm$ | `phib_p`, `phib_n` | eV | 0.48 | Schottky barrier | illustrative; inactive while $J_S$ = 0 |
-| $J_T^\pm$ | `jt_p`, `jt_n` | A/m² | 0 | trap-assisted tunnelling prefactor | off by default |
-| $E_T^\pm$ | `et_p`, `et_n` | V/m | 1e9 | TAT characteristic field | illustrative; inactive while $J_T$ = 0 |
-| $E_0$ | `e0_leak` | V/m | 1e6 | field regularization near 0 V | numerical (10 mV across 10 nm) |
-| $c_E$ | `tc_ea` | 1/K | 0 | temperature coefficient of the activation field | placeholder (no quantitative source found) |
-| $c_P$ | `tc_ps` | 1/K | 0 | temperature coefficient of $P_s$ | placeholder |
-| $c_\tau$ | `tc_tau` | 1/K | 0 | temperature coefficient of $\tau_0$ | placeholder |
-| $c_C$ | `tc_c` | 1/K | 0 | temperature coefficient of terms (1)+(2) | placeholder |
-| $m_P$ | `mul_ps` | 1 | 1 | multiplier on $P_s$ (variation hook; fatigue uses the pinned pool of E13 instead) | hook |
-| $m_E$ | `mul_ea` | 1 | 1 | multiplier on the activation field (variation hook) | hook |
-| $N_d$ | `FE_ND` (macro) | 1 | 16 | number of domain classes | numerical |
-| $y_m$ | `y_max` | 1 | 9 | depth of the logit grid (smallest $q \approx 1.2\times10^{-4}$) | numerical |
-| $a_g$ | `grid_a` | 1 | 1.5 | sinh stretching of the grid | numerical |
+| $`A`$ | `area` | m² | 1e-10 | capacitor area (instance) | illustrative (10 µm × 10 µm) |
+| $`t_{fe}`$ | `tfe` | m | 1e-08 | ferroelectric thickness | illustrative; 8–10 nm is typical of the cited HZO films [Alessandri2018, Alessandri2019] |
+| $`T_0`$ | `t0` | K | 298.15 | reference temperature | 25 °C (convention) |
+| $`s_0`$ | `s0` | 1 | −1 | initial state of every class (instance) | instance setting |
+| — | `sg0` | 1 | 0 | initial screening state, $`\sigma(0) = s_0\,\mathrm{sg0}`$ (instance) | 0 = cycled film (average of both states) |
+| $`P_s`$ | `ps` | C/m² | 0.229 | saturation polarization | $`P_R`$ = 22.9 µC/cm², Table I of [Alessandri2019] (W/HZO 8.3 nm/W) |
+| $`b^+`$ | `emp` | V/m | 1.775e8 | Dagum scale of the activation field (+ direction) | Dagum fit to the GB2 $`g(E'_a)`$ of [Alessandri2019] Table I ($`a`$ = 12.1, $`b`$ = 1.79 MV/cm, $`p`$ = 0.691, $`q`$ = 0.633) |
+| $`b^-`$ | `emn` | V/m | 1.775e8 | Dagum scale, − direction | same as `emp` ([Alessandri2019] does not separate polarities) |
+| $`a^+`$ | `ap` | 1 | 8.68 | Dagum shape (core width), + direction | same Dagum fit |
+| $`a^-`$ | `an` | 1 | 8.68 | Dagum shape, − direction | same Dagum fit |
+| $`p`$ | `pt` | 1 | 1.136 | Dagum shape; low-field tail $`G \approx (E/b)^{ap}`$ | same Dagum fit; tail exponent $`ap`$ = 9.9 (the [Alessandri2018] distribution gives about 87) |
+| $`\alpha`$ | `alpha` | 1 | 4.11 | Merz-type exponent | [Alessandri2019] Table I; 3.7–5.5 in [Alessandri2018, AlessandriIEDM2018] |
+| $`\beta`$ | `beta` | 1 | 2.07 | Weibull exponent (nucleation incubation) | [Alessandri2019] Table I; 2.06 in [Alessandri2018]; 2 in [Jo2007] |
+| $`\tau_0`$ | `tau0` | s | 3.87e-7 | attempt time ($`\tau_\infty`$ of the Merz-type law) | [Alessandri2019] Table I (387 ns); 236 ns in [Alessandri2018]; strongly device dependent |
+| $`\tau_h`$ | `tau_h` | s | 3.7e-6 | relaxation time of $`h`$ without drive | geometric mean of 1.7 µs and 8.3 µs, the single-exponential times implied by γ = 0.55 (1 µs off) and 0.3 (10 µs off) in Eq. 14 of [Alessandri2019] |
+| $`V_{imp}`$ | `vimp` | V | −0.08 | built-in (imprint) voltage; loop centre | $`V_{OS}`$ = 80 mV in [Alessandri2019] ($`V_{FE} = V_A + V_{OS}`$) |
+| $`\rho`$ | `rho` | 1 | 1 | voltage division $`C_i/(C_i + C_f)`$ by an interface layer | 1 = no interface layer (limit of the charge balance in [Tian2025]) |
+| $`V_{dep}`$ | `vdep` | V | 0 | depolarization voltage (back-switching) | off by default; a fit to [Lancaster2022] gives about 1 V (see below) |
+| $`\tau_s`$ | `tau_s` | s | 1e-4 | screening time constant | illustrative; inactive while `vdep` = 0; the fit to [Lancaster2022] gives 1.7 ms |
+| $`s_b`$ | `sb` | V | 0 | spread of per-class offsets $`\delta_k`$ | off by default |
+| $`C_d`$ | `c_d` | F/m² | 0.02055 | (1) linear dielectric capacitance ($`\varepsilon_r \approx 23`$ at 10 nm) | fit of one Lorentzian branch to C–V values digitized from Fig. 2 (Dev A, TiN/TiN) of [Mukherjee2023EDL]; width from Fig. 5a of [Mukherjee2023IEDM] |
+| $`\Delta C`$ | `dcap` | F/m² | 0.03023 | (2) peak height of each reversible branch | same fit |
+| $`f_{rev}`$ | `frev` | 1 | 1 | instantaneous fraction of term (2) | placeholder; the time scale is unresolved ([Baigol2026] vs. [Mukherjee2023IEDM]) |
+| $`C_w`$ | `c_w` | F/m² | 0 | (3) reversible domain-wall capacitance, weighted $`(1 - \bar x^2)`$ | off by default |
+| $`V_w`$ | `vw` | V | 2.236 | half width of each branch | 2.24 MV/cm × 10 nm, fit to Fig. 5a of [Mukherjee2023IEDM] (digitized) |
+| $`V_s`$ | `vs` | V | 3.006 | distance of each branch peak from $`V_i`$ | same fit as `c_d` (3.0 MV/cm × 10 nm) |
+| $`V_i`$ | `vi` | V | 0 | crossing voltage of the two branches | ≈ 0 for symmetric electrodes ([Mukherjee2023EDL] Dev A) |
+| $`C_r`$ | `c_r` | F/m² | 0 | state-independent slow capacitance | off by default |
+| $`\tau_r`$ | `tau_r` | s | 1e-7 | low-pass time constant of $`y`$ | inactive while `frev` = 1 and `c_w` = `c_r` = 0; order of magnitude from the > 2 MHz roll-off in [Baigol2026] (inference) |
+| $`G_\Omega`$ | `g_oh` | A/m²/V | 1e-4 | ohmic leakage conductance | low-voltage end of the 0–2 V leakage range in Fig. 6a of [Fehlings2025b] (digitized) |
+| $`\phi_\Omega`$ | `phi_oh` | eV | 0 | activation energy of $`G_\Omega`$ | placeholder (no source found) |
+| $`\sigma_{PF}^\pm`$ | `spf_p`, `spf_n` | S/m | 4.8e-12 | Poole–Frenkel prefactor | scaled so that $`J`$(2 V) = 0.1 A/m², the upper end of Fig. 6a of [Fehlings2025b] (digitized) |
+| $`\phi_t^\pm`$ | `phit_p`, `phit_n` | eV | 0.68 | Poole–Frenkel trap depth | $`\phi_{tr,fe}`$ = 0.68 eV, Table 1 of [Fehlings2024] (model fit, W/HZO 9.8 nm/W) |
+| $`\varepsilon_{op}`$ | `eps_op` | 1 | 70 | permittivity in the barrier lowering | $`\varepsilon_{fe}`$ = 70 as used in the PF term of [Fehlings2024] |
+| $`J_S^\pm`$ | `js_p`, `js_n` | A/m² | 0 | Schottky prefactor at $`T_0`$ | off by default |
+| $`\phi_b^\pm`$ | `phib_p`, `phib_n` | eV | 0.48 | Schottky barrier | illustrative; inactive while $`J_S`$ = 0 |
+| $`J_T^\pm`$ | `jt_p`, `jt_n` | A/m² | 0 | trap-assisted tunnelling prefactor | off by default |
+| $`E_T^\pm`$ | `et_p`, `et_n` | V/m | 1e9 | TAT characteristic field | illustrative; inactive while $`J_T`$ = 0 |
+| $`E_0`$ | `e0_leak` | V/m | 1e6 | field regularization near 0 V | numerical (10 mV across 10 nm) |
+| $`c_E`$ | `tc_ea` | 1/K | 0 | temperature coefficient of the activation field | placeholder (no quantitative source found) |
+| $`c_P`$ | `tc_ps` | 1/K | 0 | temperature coefficient of $`P_s`$ | placeholder |
+| $`c_\tau`$ | `tc_tau` | 1/K | 0 | temperature coefficient of $`\tau_0`$ | placeholder |
+| $`c_C`$ | `tc_c` | 1/K | 0 | temperature coefficient of terms (1)+(2) | placeholder |
+| $`m_P`$ | `mul_ps` | 1 | 1 | multiplier on $`P_s`$ (variation hook; fatigue uses the pinned pool of E13 instead) | hook |
+| $`m_E`$ | `mul_ea` | 1 | 1 | multiplier on the activation field (variation hook) | hook |
+| $`N_d`$ | `FE_ND` (macro) | 1 | 16 | number of domain classes | numerical |
+| $`y_m`$ | `y_max` | 1 | 9 | depth of the logit grid (smallest $`q \approx 1.2\times10^{-4}`$) | numerical |
+| $`a_g`$ | `grid_a` | 1 | 1.5 | sinh stretching of the grid | numerical |
 | — | `bnd` | 1 | 0.1 | maximum state change per time step requested through `$bound_step` | numerical |
 
 **History parameters (E13–E20).** Every term is off in the generic card; the
@@ -357,40 +389,40 @@ devices and are not defaults.
 
 | Symbol | `.va` name | Unit | Default | Meaning | Role |
 |---|---|---|---|---|---|
-| $f_{p0}$ | `wk_fp` | 1 | 0 | pristine pinned fraction, released by wake-up (E14) | fit knob (wake-up data) |
-| $V_{sp}$ | `wk_vsp` | V | 0 | pristine internal-bias split, $\pm V_{sp}$ on alternating classes (E14) | fit knob (split switching-current peaks) |
-| $N_w$ | `wk_nw` | 1 | 1000 | wake-up constant in equivalent full switching cycles | illustrative |
-| $\kappa_w$ | `wk_kw` | 1 | 1 | stretch exponent of the wake-up law | illustrative |
-| $E_w$ | `wk_ea` | eV | 0 | activation energy of wake-up (also of E18) | fit knob (several temperatures) |
-| $D_{max}$ | `fat_d` | 1 | 0 | largest fraction pinned by fatigue (E15) | fit knob (fatigue data) |
-| $t_F$ | `fat_tf` | s | 1 | field-time driver: stress time at 1 MV/cm for $a_F$ = 1 (0 = off) | illustrative |
-| $N_F$ | `fat_ns` | 1 | 0 | switching driver: full cycles at 1 MV/cm for $a_F$ = 1 (0 = off) | fit knob |
-| $n_F$ | `fat_nf` | 1 | 4 | field exponent of both fatigue drivers | illustrative; needs several fields |
-| $E_F$ | `fat_ea` | eV | 0 | activation energy of fatigue | fit knob |
-| $\kappa_F$ | `fat_kf` | 1 | 1 | stretch exponent of the fatigue law | illustrative |
-| $k_E$ | `fat_ke` | 1 | 0 | relative increase of the activation field per unit damage | fit knob |
-| $V_I$ | `imp_v` | V | 0 | imprint bias at full trapped-charge screening (E17) | fit knob (imprint data) |
-| $\tau_{I1}$, $\tau_{I2}$ | `imp_t1`, `imp_t2` | s | 1e-7, 1e5 | range of imprint time constants at $T_0$ | $\tau_{I1}$ fitted; $\tau_{I2}$ beyond the data |
-| $E_I$ | `imp_ea` | eV | 0 | activation energy of the imprint time constants | fit knob (several temperatures) |
-| $N_I$ | `FE_NI` (macro) | 1 | 12 | number of imprint states | numerical |
-| $f_q$ | `wk_fq` | 1 | 0 | fraction in the reversible depinning pool (E18) | fit knob (pulse-width / duty-cycle data) |
-| $\rho_q$ | `wk_rho` | 1 | 0 | re-pinning at rest, relative to depinning at 1 MV/cm | off; see the derivation article for why `wk_tr` is preferred |
-| $t_r$ | `wk_tr` | s | 0 | re-pinning per full switching cycle, in seconds of depinning at 1 MV/cm | fit knob |
-| $\tau_{q1}$, $\tau_{q2}$ | `wk_q1`, `wk_q2` | s | 0.01, 100 | range of depinning time constants at 1 MV/cm and $T_0$ | illustrative |
-| $n_q$ | `wk_nq` | 1 | 2 | field exponent of the depinning drive | illustrative |
-| $N_Q$ | `FE_NQ` (macro) | 1 | 8 | number of depinning states | numerical |
-| $t_L$ | `fat_tl` | s | 0 | build-up time of the fatigue stress (E19; 0 = instantaneous) | fit knob |
-| $k_L$, $m_L$ | `fat_lk`, `fat_lm` | 1 | 0, 1 | leakage growth $J(1 + k_L a_F^{m_L})$ (E20) | fit knob (leakage-vs-cycling data) |
-| $\kappa_I$ | `imp_kw` | 1 | 0 | branch asymmetry of the imprint (E17a) | 0.18 ± 0.02 from [Buragohain2019] |
-| $V_a$ | `imp_va` | V | 0 | field acceleration of the imprint rates (E17b; 0 = off) | off |
+| $`f_{p0}`$ | `wk_fp` | 1 | 0 | pristine pinned fraction, released by wake-up (E14) | fit knob (wake-up data) |
+| $`V_{sp}`$ | `wk_vsp` | V | 0 | pristine internal-bias split, $`\pm V_{sp}`$ on alternating classes (E14) | fit knob (split switching-current peaks) |
+| $`N_w`$ | `wk_nw` | 1 | 1000 | wake-up constant in equivalent full switching cycles | illustrative |
+| $`\kappa_w`$ | `wk_kw` | 1 | 1 | stretch exponent of the wake-up law | illustrative |
+| $`E_w`$ | `wk_ea` | eV | 0 | activation energy of wake-up (also of E18) | fit knob (several temperatures) |
+| $`D_{max}`$ | `fat_d` | 1 | 0 | largest fraction pinned by fatigue (E15) | fit knob (fatigue data) |
+| $`t_F`$ | `fat_tf` | s | 1 | field-time driver: stress time at 1 MV/cm for $`a_F`$ = 1 (0 = off) | illustrative |
+| $`N_F`$ | `fat_ns` | 1 | 0 | switching driver: full cycles at 1 MV/cm for $`a_F`$ = 1 (0 = off) | fit knob |
+| $`n_F`$ | `fat_nf` | 1 | 4 | field exponent of both fatigue drivers | illustrative; needs several fields |
+| $`E_F`$ | `fat_ea` | eV | 0 | activation energy of fatigue | fit knob |
+| $`\kappa_F`$ | `fat_kf` | 1 | 1 | stretch exponent of the fatigue law | illustrative |
+| $`k_E`$ | `fat_ke` | 1 | 0 | relative increase of the activation field per unit damage | fit knob |
+| $`V_I`$ | `imp_v` | V | 0 | imprint bias at full trapped-charge screening (E17) | fit knob (imprint data) |
+| $`\tau_{I1}`$, $`\tau_{I2}`$ | `imp_t1`, `imp_t2` | s | 1e-7, 1e5 | range of imprint time constants at $`T_0`$ | $`\tau_{I1}`$ fitted; $`\tau_{I2}`$ beyond the data |
+| $`E_I`$ | `imp_ea` | eV | 0 | activation energy of the imprint time constants | fit knob (several temperatures) |
+| $`N_I`$ | `FE_NI` (macro) | 1 | 12 | number of imprint states | numerical |
+| $`f_q`$ | `wk_fq` | 1 | 0 | fraction in the reversible depinning pool (E18) | fit knob (pulse-width / duty-cycle data) |
+| $`\rho_q`$ | `wk_rho` | 1 | 0 | re-pinning at rest, relative to depinning at 1 MV/cm | off; see the derivation article for why `wk_tr` is preferred |
+| $`t_r`$ | `wk_tr` | s | 0 | re-pinning per full switching cycle, in seconds of depinning at 1 MV/cm | fit knob |
+| $`\tau_{q1}`$, $`\tau_{q2}`$ | `wk_q1`, `wk_q2` | s | 0.01, 100 | range of depinning time constants at 1 MV/cm and $`T_0`$ | illustrative |
+| $`n_q`$ | `wk_nq` | 1 | 2 | field exponent of the depinning drive | illustrative |
+| $`N_Q`$ | `FE_NQ` (macro) | 1 | 8 | number of depinning states | numerical |
+| $`t_L`$ | `fat_tl` | s | 0 | build-up time of the fatigue stress (E19; 0 = instantaneous) | fit knob |
+| $`k_L`$, $`m_L`$ | `fat_lk`, `fat_lm` | 1 | 0, 1 | leakage growth $`J(1 + k_L a_F^{m_L})`$ (E20) | fit knob (leakage-vs-cycling data) |
+| $`\kappa_I`$ | `imp_kw` | 1 | 0 | branch asymmetry of the imprint (E17a) | 0.18 ± 0.02 from [Buragohain2019] |
+| $`V_a`$ | `imp_va` | V | 0 | field acceleration of the imprint rates (E17b; 0 = off) | off |
 
-**About $\tau_0$.** An earlier draft of this model used $\tau_0$ = 2 ns
+**About $`\tau_0`$.** An earlier draft of this model used $`\tau_0`$ = 2 ns
 together with the [Alessandri2019] distribution. That combination does not
 reproduce the paper's own switching curves: refitting the distribution with
-$\tau_0$ fixed at 1–3 ns leaves an RMS error of about 0.09 in switched
-fraction, against 0.002 at the published 387 ns (and $\beta = 1$ cannot fit the
+$`\tau_0`$ fixed at 1–3 ns leaves an RMS error of about 0.09 in switched
+fraction, against 0.002 at the published 387 ns (and $`\beta = 1`$ cannot fit the
 curves either, RMS 0.036). The public card therefore uses 387 ns. Devices with
-much faster switching (for example [Baigol2026]) need their own $\tau_0$ and
+much faster switching (for example [Baigol2026]) need their own $`\tau_0`$ and
 distribution.
 
 ## Numerical notes
@@ -412,13 +444,13 @@ distribution.
 * **Initial state.** The states are pinned during any static analysis and at
   the transient operating point; `.ic` is not needed. A `.dc` sweep therefore
   always uses the `s0` state (no hysteresis in DC). In an `.ac` analysis the
-  states are frozen, so the small-signal capacitance is $\partial q_{rev}/\partial V$
+  states are frozen, so the small-signal capacitance is $`\partial q_{rev}/\partial V`$
   of the bias state.
-* **Number of classes.** $N_d$ = 16 resolves charges and switched fractions to
+* **Number of classes.** $`N_d`$ = 16 resolves charges and switched fractions to
   about 1 % (Python: RMS 0.0065 in switched fraction against the continuous
   distribution, see [Comparison](#comparison-with-published-data)). The loss
   per cycle under repeated reads is a step function of the cycle count for
-  small $N_d$ because the tail switches class by class; use `-D FE_ND=64` (or
+  small $`N_d`$ because the tail switches class by class; use `-D FE_ND=64` (or
   the closed forms in the Python module) for slopes versus cycle count.
 * **Reading the state.** Measure `v(qm)` at 0 V instead of integrating the
   current; the integral accumulates the step error over many pulses.
@@ -436,7 +468,7 @@ compiled with OpenVAF-Reloaded without warnings and ran in ngspice 47.
   HSPICE `BYPASS`, `RELQ`) hide the small per-step state changes of long
   read sequences — compare a run with tightened tolerances;
 * the `(*type="instance"*)` attribute on `area`, `s0`, `sg0`, `nw0`, `af0`, `si0`, `zq0`;
-* the internal node count ($2N_d + 2$ core nodes plus $5 + N_I + N_Q$ history
+* the internal node count ($`2N_d + 2`$ core nodes plus $`5 + N_I + N_Q`$ history
   nodes, 59 with the defaults) for large arrays.
 
 ## Verification
@@ -445,24 +477,24 @@ compiled with OpenVAF-Reloaded without warnings and ran in ngspice 47.
 OpenVAF-Reloaded 24.0.2. All 92 checks in 19 decks pass; the table lists the main ones.
 The Python reference integrates the same equations with SciPy's Radau method
 (`rtol` = 1e-8) on the same piecewise-linear stimulus. Charges are densities
-in µC/cm² ($2P_s$ = 45.8); "x" is the mean state $\bar x$.
+in µC/cm² ($`2P_s`$ = 45.8); "x" is the mean state $`\bar x`$.
 
 | Deck | Stimulus | Quantity | ngspice | Python | Difference | Tolerance |
 |---|---|---|---|---|---|---|
 | `pund` | preset, P, U, N, D at 3 V, 10 µs pulses | Q/A at the end of each gap | −22.8455 / 22.8995 / 22.9000 / −22.8455 / −22.8654 | same | ≤ 1.2e-5 | 0.02 |
-| | | P − U switched charge | 45.744 | 2 $P_s$ = 45.8 | 0.056 | 0.92 (2 %) |
+| | | P − U switched charge | 45.744 | 2 $`P_s`$ = 45.8 | 0.056 | 0.92 (2 %) |
 | | | max \|ΔQ/A\| over the waveform | | | 0.010 | 0.05 |
-| | | charge balance $\lvert\int I\,dt - A\Delta Q - \int I_L dt\rvert / 2P_sA$ | | | 4.1e-4 | 1e-3 |
-| `loop_1k` / `loop_10k` / `loop_100k` | ±3 V triangle | $V_c^+$, up sweep (V) | 1.2452 / 1.4882 / 2.0779 | 1.2452 / 1.4882 / 2.0779 | ≤ 1e-5 | 0.01 |
-| | | $V_c^-$, down sweep (V) | −1.3997 / −1.6395 / −2.2271 | −1.3989 / −1.6407 / −2.2335 | ≤ 0.0064 | 0.01 |
+| | | charge balance $`\lvert\int I\,dt - A\Delta Q - \int I_L dt\rvert / 2P_sA`$ | | | 4.1e-4 | 1e-3 |
+| `loop_1k` / `loop_10k` / `loop_100k` | ±3 V triangle | $`V_c^+`$, up sweep (V) | 1.2452 / 1.4882 / 2.0779 | 1.2452 / 1.4882 / 2.0779 | ≤ 1e-5 | 0.01 |
+| | | $`V_c^-`$, down sweep (V) | −1.3997 / −1.6395 / −2.2271 | −1.3989 / −1.6407 / −2.2335 | ≤ 0.0064 | 0.01 |
 | | | max \|ΔQ/A\| over the loop | | | ≤ 0.0014 | 0.5 |
 | `minor` | triangles 1.2 → 3.0 V | max \|ΔQ/A\| | | | 0.0028 | 0.5 |
 | `switching` | 24 pulses: 1.5–3.0 V × 0.1–30 µs from −1 | max \|Δf\| (switched fraction) | | | 1.8e-4 | 2e-3 |
 | | | Python ODE vs. single-pulse NLS closed form | | | 0.0061 (edge effect) | 0.02 |
-| `small_signal` | ±0.3 V, 1 MHz, 1000 cycles from +1, −1, and $\bar x$ = 0.511 | \|Δx\| after 1000 cycles | ≤ 6.5e-14 | 0 | | 1e-9 |
-| `slow_accumulation` | ±0.8 V, 1 MHz, 200 cycles from $\bar x$ = 0.511 | Δx | −7.22e-5 | −7.12e-5 | 1.4 % | 5 % |
-| `reversible` | ±0.67 V reads and a 1.8 V partial switch, $f_{rev}$ = 0.5, $C_w$, $C_r$ on | max \|ΔQ/A\| | | | 0.0054 | 0.02 |
-| `backswitch` | 3 V write, 1 ms at 0 V, $V_{dep}$ = 1 V, $\tau_s$ = 100 µs | back-switched charge | 0.2616 | 0.2614 | 1.1e-4 | 0.02 |
+| `small_signal` | ±0.3 V, 1 MHz, 1000 cycles from +1, −1, and $`\bar x`$ = 0.511 | \|Δx\| after 1000 cycles | ≤ 6.5e-14 | 0 | | 1e-9 |
+| `slow_accumulation` | ±0.8 V, 1 MHz, 200 cycles from $`\bar x`$ = 0.511 | Δx | −7.22e-5 | −7.12e-5 | 1.4 % | 5 % |
+| `reversible` | ±0.67 V reads and a 1.8 V partial switch, $`f_{rev}`$ = 0.5, $`C_w`$, $`C_r`$ on | max \|ΔQ/A\| | | | 0.0054 | 0.02 |
+| `backswitch` | 3 V write, 1 ms at 0 V, $`V_{dep}`$ = 1 V, $`\tau_s`$ = 100 µs | back-switched charge | 0.2616 | 0.2614 | 1.1e-4 | 0.02 |
 | `temperature` | 85 °C, all four temperature coefficients non-zero | max \|ΔQ/A\| | | | 0.0033 | 0.05 |
 | `leakage` | DC sweep −3…3 V at 25 °C and 85 °C | max relative \|ΔI\| | | | 7e-10 | 1e-6 |
 | `wakeup` | ±3 V triangles from a pristine film, E14 on | max \|ΔQ/A\|; per-cycle charge swing | | | 0.0024; 0.0011 | 0.05 |
@@ -484,9 +516,9 @@ form within 2e-4) and to the continuous NLS integral (within 1e-4 for a dense
 grid), closed forms vs. ODE for pulse trains, PUND and bipolar cycles, time-step
 convergence of a fixed-grid integrator, no drift for ±26 mV and ±0.3 V signals
 (10⁶ cycles in closed form, 20 cycles by ODE), convergence of genuine
-accumulation with $N_d$, the butterfly branches and the $f_{rev}$ split,
-passivity for $f_{rev}$ < 1, charge conservation in a series-resistor circuit
-(error < 1e-4 of $2P_sA$), three deliberately broken versions of the model
+accumulation with $`N_d`$, the butterfly branches and the $`f_{rev}`$ split,
+passivity for $`f_{rev}`$ < 1, charge conservation in a series-resistor circuit
+(error < 1e-4 of $`2P_sA`$), three deliberately broken versions of the model
 that the checks must catch (see the derivation article), and the closed-form
 `step()` across a sub-threshold reversal. The history terms are covered by
 `tests/test_history.py` (23), `tests/test_cycling_r2.py` (18),
@@ -516,16 +548,16 @@ Python reference; the ngspice model reproduces it to 2e-4 in switched fraction
   the Dagum parameters of the generic card are a fit to the [Alessandri2019]
   curves. The Dagum form represents the published GB2 with an RMS error of
   0.0022 in switched fraction (continuous distribution) and 0.0065 with
-  $N_d$ = 16; the same refit for [Alessandri2018] gives 0.0003 / 0.0052. The
+  $`N_d`$ = 16; the same refit for [Alessandri2018] gives 0.0003 / 0.0052. The
   generic card applied unchanged to the [Alessandri2018] device misses by RMS
-  0.26: the two devices differ mainly in the low-field tail (exponent $ap$ ≈ 10
+  0.26: the two devices differ mainly in the low-field tail (exponent $`ap`$ ≈ 10
   vs. ≈ 87), which is exactly the part that sets accumulation under repeated
   sub-coercive pulses.
 * **Reversible C–V branches** ([Mukherjee2023EDL] Fig. 2 Dev A,
   [Mukherjee2023IEDM] Fig. 5a; digitized). *Fitted:* three parameters to the
   symmetric Dev A points with the width from the IEDM fit (RMS 0.23 in
-  $\varepsilon_r$; these are the card values), and four parameters to the seven
-  IEDM points of the asymmetric stack (RMS 1.5 in $\varepsilon_r$). The
+  $`\varepsilon_r`$; these are the card values), and four parameters to the seven
+  IEDM points of the asymmetric stack (RMS 1.5 in $`\varepsilon_r`$). The
   two-branch form reproduces the crossing point and the asymmetric butterfly;
   it does not reproduce the steep switching-side flank of the measured peaks,
   because a measured branch ends where that state switches.
@@ -551,15 +583,15 @@ Python reference; the ngspice model reproduces it to 2e-4 in switched fraction
   timing; the research note lists the settings to reproduce the reads in a
   circuit.
 * **Back-switching** ([Lancaster2022] Figs. 3–4, 25/100/250 µs writes at
-  3.5 V on 11 nm HZO; digitized). *Fitted:* $V_{dep}$ = 1.03 V and $\tau_s$ =
+  3.5 V on 11 nm HZO; digitized). *Fitted:* $`V_{dep}`$ = 1.03 V and $`\tau_s`$ =
   1.7 ms (two parameters, twelve points, RMS 0.19 µC/cm²). With screening the
   loss saturates and is smaller for longer writes, as in the data; a constant
-  $V_{dep}$ without screening keeps growing with delay. The model saturates
+  $`V_{dep}`$ without screening keeps growing with delay. The model saturates
   about a decade earlier than the data and underestimates the loss after
   250 µs writes (0.52 vs. 0.75–0.85 µC/cm²).
 * **Series-capacitor reads** ([Duan2025] Fig. 9; qualitative only, nothing
   fitted). With the paper's area ratio 0.83, a 10 nm gate dielectric
-  ($\varepsilon_r$ = 20 assumed) and 2.5 V / 10 µs reads, the model loses the
+  ($`\varepsilon_r`$ = 20 assumed) and 2.5 V / 10 µs reads, the model loses the
   state difference steadily when the floating node is discharged after every
   read (0.97 → 0.57 after 300 reads) and keeps it when the node is left
   floating (0.97 → 0.966), the same ordering as the measured read currents.
@@ -570,15 +602,15 @@ Python reference; the ngspice model reproduces it to 2e-4 in switched fraction
 * **Cycling history and imprint** (E13–E20). Each term was fitted to its own
   published device; details in Section 7 of the
   [derivation article](../docs/model-derivation.md#7-comparison-with-published-data)
-  and in [`docs/research/`](../docs/research/). Wake-up with $2P_r$ and $2E_c$
-  at five temperatures [Fengler2017] (one parameter set, $2E_c$ RMS
+  and in [`docs/research/`](../docs/research/). Wake-up with $`2P_r`$ and $`2E_c`$
+  at five temperatures [Fengler2017] (one parameter set, $`2E_c`$ RMS
   0.022 MV/cm); wake-up then fatigue [Pesic2016] (RMS 0.35 µC/cm²); two cycling
   fields [Park2020] (RMS 0.29 µC/cm²); five pulse widths [Lenox2023] (E18, RMS
-  0.012 in $P_r/P_r^0$; no single-dose law fits); leakage onset [Lenox2023]
-  (E19) and leakage growth [Pesic2016] (E20, $10^4$–$10^6$ cycles); imprint vs.
+  0.012 in $`P_r/P_r^0`$; no single-dose law fits); leakage onset [Lenox2023]
+  (E19) and leakage growth [Pesic2016] (E20, $`10^4`$–$`10^6`$ cycles); imprint vs.
   time [Buragohain2019] (RMS 75 mV) and at five temperatures [Fengler2018]
   (RMS 4.3 mV with 0.40 eV); branch asymmetry [Buragohain2019] (E17a,
-  $\kappa = 0.18 \pm 0.02$).
+  $`\kappa = 0.18 \pm 0.02`$).
 
 ## Changes required by the real compiler and simulator
 
@@ -597,12 +629,12 @@ ngspice showed:
    `if (analysis("static") || $abstime <= 0.0)`. After the fix every deck
    starts from `s0` without warnings.
 2. **Leakage exponent caps.** The Python reference caps the two leakage
-   exponentials at $e^{80}$; the draft did not. The caps were added so that both
+   exponentials at $`e^{80}`$; the draft did not. The caps were added so that both
    implementations are identical (they only matter beyond physical fields).
 3. **Interface.** `area`, `s0` and `sg0` became instance parameters
    (`(*type="instance"*)`), so one model card serves capacitors of different
    size and state; the monitor output changed from fC to µC/cm² so that it does
-   not depend on the area. The default $\tau_0$ and area changed with the
+   not depend on the area. The default $`\tau_0`$ and area changed with the
    parameter card (see [Parameters](#parameters)).
 4. **Toolchain, not model:** the Windows build of OpenVAF-Reloaded needs an
    external linker (see [Quick start](#quick-start-ngspice)).
@@ -619,19 +651,19 @@ Python module.
 | Not described | Consequence |
 |---|---|
 | Fatigue recovery and breakdown | Fatigue damage only grows; recovery after rest or baking [Pesic2016] is not modelled (the only public figure has no axis scale), and neither is breakdown (one device per condition in the public data). |
-| Early leakage rise | E20 reproduces the leakage factors at $10^4$–$10^6$ cycles, not the steep rise from $10^3$ to $10^4$ or the superlinear growth near breakdown. |
-| Drop after $10^8$ reads | Read-stress pinning and imprint during reading both fit [Mukherjee2023IEDM]; the data do not distinguish them. |
+| Early leakage rise | E20 reproduces the leakage factors at $`10^4`$–$`10^6`$ cycles, not the steep rise from $`10^3`$ to $`10^4`$ or the superlinear growth near breakdown. |
+| Drop after $`10^8`$ reads | Read-stress pinning and imprint during reading both fit [Mukherjee2023IEDM]; the data do not distinguish them. |
 | Onset time of imprint | Reproducing the read endurance needs imprint to grow from about 1 µs after the write (fitted); fully poled samples of [Buragohain2019] show no growth before 0.1 s. |
-| Mechanism of the reversible response | Only the terminal $C(V, \text{state})$ is modelled; dielectric softening, electrode depletion, interface traps and domain walls are not separated. Extrapolation to other thicknesses, electrodes or frequencies is not guaranteed; $f_{rev}$ only parametrizes the unresolved time scale. |
+| Mechanism of the reversible response | Only the terminal $`C(V, \text{state})`$ is modelled; dielectric softening, electrode depletion, interface traps and domain walls are not separated. Extrapolation to other thicknesses, electrodes or frequencies is not guaranteed; $`f_{rev}`$ only parametrizes the unresolved time scale. |
 | Off-time dependence of accumulation | [Alessandri2019] leaves the form of the relaxation factor open, and one exponential cannot match both of its points (1.7 and 8.3 µs). |
 | Stochastic switching of single grains | The model gives the mean over many grains. Small capacitors contain few grains (20 grains in about 40 × 40 nm² [AlessandriIEDM2018, Alessandri2019]); the spread of tail switching can exceed the mean signal and needs a Monte Carlo version. |
 | Extrapolation | The cited switching data start at 200 ns and 0.8 V. Rates below about 0.8 V and switching faster than 200 ns are extrapolations; measurements there are validations, not fit data. |
 | Polarization-dependent resistance | The sub-300 ps response reported in [Baigol2026] is not included. |
 | Phase changes, antiferroelectric-like pinching | Not described; at elevated temperature thin films can show double-peaked loops [Afroze2026]. |
 | Temperature | The linear temperature coefficients are placeholders (0) because no quantitative source was found; only the leakage has an Arrhenius dependence. |
-| Long storage in the opposite state | With $V_{dep}$ on and $\sigma$ starting from $s_0$, the model predicts a large loss within 1 ms after the write; this is not supported by data, so $\sigma$ starts at 0 (a cycled film) by default and should be used only for short-term back-switching. |
-| Small $\beta$ | The linearization of $h^{\beta-1}$ below $10^{-6}$ is negligible for $\beta \gtrsim 1.8$; near $\beta = 1$ it underestimates tail accumulation. |
-| Interface layer | $\rho \ne 1$ is implemented but not validated. |
+| Long storage in the opposite state | With $`V_{dep}`$ on and $`\sigma`$ starting from $`s_0`$, the model predicts a large loss within 1 ms after the write; this is not supported by data, so $`\sigma`$ starts at 0 (a cycled film) by default and should be used only for short-term back-switching. |
+| Small $`\beta`$ | The linearization of $`h^{\beta-1}`$ below $`10^{-6}`$ is negligible for $`\beta \gtrsim 1.8`$; near $`\beta = 1`$ it underestimates tail accumulation. |
+| Interface layer | $`\rho \ne 1`$ is implemented but not validated. |
 
 ## References
 

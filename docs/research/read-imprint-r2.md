@@ -51,11 +51,11 @@ For each question: candidate mechanisms, literature basis and the predictions th
 
 **The key geometric point: the loop itself consists of freshly written states.** Δ is measured relative to the −0.54 V peak of the 50 µs triangular loop. In the loop the + state is written at +1.35 V, then passes through the high field at +2.7 V, and is switched about 21 µs later at −0.54 V. Whatever charge injection happens at high field during a write (fluid imprint) has also happened to the state in the loop; unless the write pulse is much longer than the high-field part of the loop, it cancels in Δ. **Δ can only come from storage time beyond 21 µs**, i.e. from the delay d between the write and the first read:
 
-$$
+```math
 \Delta(d)\approx V_{0,esc}\left[\ln\!\left(1+\frac{d}{\tau_0}\right)-\ln\!\left(1+\frac{t_L}{\tau_0}\right)\right],\qquad t_L\approx 21\ \mu\mathrm{s},
-$$
+```
 
-where $V_{0,esc}$ is the log slope of the escape branch (the one that switches out of the stored state), the centre slope times $(1+\kappa)$ (question 5). Section 4.1 computes this with the field acceleration E17b: the stronger the acceleration, the more the loop states are imprinted too, and the *smaller* Δ becomes.
+where $`V_{0,esc}`$ is the log slope of the escape branch (the one that switches out of the stored state), the centre slope times $`(1+\kappa)`$ (question 5). Section 4.1 computes this with the field acceleration E17b: the stronger the acceleration, the more the loop states are imprinted too, and the *smaller* Δ becomes.
 
 **Distinguishing predictions.** Δ grows logarithmically with d; it depends only weakly on the write pulse width; at higher temperature τ₀ shortens and Δ grows. If τ₀ (the time at which the log growth starts) is much longer than t_L — e.g. the 0.1–0.2 s of the fully poled samples of Buragohain2019 — the delay needed becomes tens of seconds or more.
 
@@ -101,21 +101,21 @@ Note that Alcala2022 defines imprint as (Ec₊ + Ec₋)/2: one read measures the
 
 Both are appended at the end of the parameter table (`imp_kw`, `imp_va`), default 0; off, the code runs its old path: the Python output is bit-identical (test `test_imprint_without_new_terms_is_unchanged` and the existing tests), and on the 16 existing ngspice decks the compiled Verilog-A agrees with the build before the change: of 64 non-zero checked quantities 30 are identical and the rest differ by at most 8×10⁻⁷ relative (solver round-off). The changes are confined to the imprint and reversible-branch code; the wake-up and fatigue code is untouched.
 
-**E17a: branch asymmetry (`imp_kw` = κ).** On top of the centre shift $-V_I\sigma_I$ of E17, both switching fields move outward by
+**E17a: branch asymmetry (`imp_kw` = κ).** On top of the centre shift $`-V_I\sigma_I`$ of E17, both switching fields move outward by
 
-$$
+```math
 w=\kappa V_I\left(\sqrt{\sigma_I^2+e^2}-e\right),\qquad e=10^{-3},
-$$
+```
 
-i.e. the + rate uses $u-w$ and the − rate $-u-w$ ($u$ is the drive of E1). For a stored + state with σ_I > 0 the escape (−) branch moves by $(1+\kappa)V_I\sigma_I$ and the return branch by $(1-\kappa)V_I\sigma_I$. The peaks of the reversible branches sit near the switching fields, so the branch distance $V_s$ gets $w/\rho$ as well. The reversal gates of h still use the centre drive $u$. The square-root smoothing keeps the Verilog-A derivative continuous at σ_I = 0.
+i.e. the + rate uses $`u-w`$ and the − rate $`-u-w`$ ($`u`$ is the drive of E1). For a stored + state with σ_I > 0 the escape (−) branch moves by $`(1+\kappa)V_I\sigma_I`$ and the return branch by $`(1-\kappa)V_I\sigma_I`$. The peaks of the reversible branches sit near the switching fields, so the branch distance $`V_s`$ gets $`w/\rho`$ as well. The reversal gates of h still use the centre drive $`u`$. The square-root smoothing keeps the Verilog-A derivative continuous at σ_I = 0.
 
-**E17b: field acceleration (`imp_va` = V_a).** Every imprint rate is multiplied by $\cosh(\rho V/V_a)$ (argument capped at 80):
+**E17b: field acceleration (`imp_va` = V_a).** Every imprint rate is multiplied by $`\cosh(\rho V/V_a)`$ (argument capped at 80):
 
-$$
+```math
 \tau_j\dot\sigma_j=\cosh\!\left(\frac{\rho V}{V_a}\right)(x_t-\sigma_j).
-$$
+```
 
-It stands for charge injection during write pulses and under bias (section 2.1): a symmetric, phenomenological form of an injection current that grows exponentially with field (Schottky, tunnelling) for either polarity. The cycle-averaged `cycle_history` builds its per-period affine map on the accelerated time $\int\cosh(\rho V/V_a)\,dt$ and agrees with direct integration (test).
+It stands for charge injection during write pulses and under bias (section 2.1): a symmetric, phenomenological form of an injection current that grows exponentially with field (Schottky, tunnelling) for either polarity. The cycle-averaged `cycle_history` builds its per-period affine map on the accelerated time $`\int\cosh(\rho V/V_a)\,dt`$ and agrees with direct integration (test).
 
 **Read sequence.** [`read_disturb.read_sequence_dynamic`](../../src/fe_models/read_disturb.py) lets the imprint of each stored state grow with its imprint time after the write: the write pulse, a delay d, then one period T per read (accelerated time when E17b is on). Read n uses a card built from σ_I at that time (`imprint_card`); the switching part is relative to the loop's own imprint σ_L (the activation fields were calibrated on the loop), the reversible part relative to the imprint of the C–V states (taken 0.3 s old). Checks: with imprint off it equals `read_sequence` (relative 10⁻⁶); with a saturated imprint it equals `read_sequence` with a constant Δ; the first 6 reads agree with a step-by-step `nm.step` integration to < 0.3 %.
 

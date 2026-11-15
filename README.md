@@ -48,7 +48,7 @@ The Landau, Preisach, kinetics and measurement modules use illustrative syntheti
 
 **Cycling and storage history against published data** (see [Sections 4 and 7 of the derivation article](docs/model-derivation.md#4-cycling-and-storage-history-optional) and [`docs/research/`](docs/research/))
 
-| $2P_r$ and $2E_c$ during wake-up, five temperatures | Pulse-width dependence of wake-up |
+| $`2P_r`$ and $`2E_c`$ during wake-up, five temperatures | Pulse-width dependence of wake-up |
 |---|---|
 | ![Wake-up 2Pr and 2Ec](docs/research/r2_wakeup_coercive.png) | ![Pulse width](docs/research/r2_pulse_width.png) |
 | **Read endurance: dynamic imprint against both states** | **Imprint versus time and temperature** |
@@ -128,9 +128,11 @@ python examples/make_all_figures.py
 
 ### `fe_models.landau` — Landau–Devonshire and Landau–Khalatnikov
 
-Free energy $F = \alpha P^2 + \beta P^4 + \gamma P^6 - EP$, the static S-curve $E(P) = \partial F/\partial P$ including the negative-capacitance branch, the intrinsic coercive field from the free energy, $(\alpha, \beta)$ from $(P_r, E_c)$, and the Landau–Khalatnikov equation $\rho\,\mathrm{d}P/\mathrm{d}t = -\partial F/\partial P$ for any $E(t)$ (`solve_ivp`). For the 2–4 model (derivation in the docstring of `landau.py`):
+Free energy $`F = \alpha P^2 + \beta P^4 + \gamma P^6 - EP`$, the static S-curve $`E(P) = \partial F/\partial P`$ including the negative-capacitance branch, the intrinsic coercive field from the free energy, $`(\alpha, \beta)`$ from $`(P_r, E_c)`$, and the Landau–Khalatnikov equation $`\rho\,\mathrm{d}P/\mathrm{d}t = -\partial F/\partial P`$ for any $`E(t)`$ (`solve_ivp`). For the 2–4 model (derivation in the docstring of `landau.py`):
 
-$$P_r = \sqrt{-\alpha/2\beta}, \qquad E_c = \frac{4}{3\sqrt{3}}\,(-\alpha)\,P_r .$$
+```math
+P_r = \sqrt{-\alpha/2\beta}, \qquad E_c = \frac{4}{3\sqrt{3}}\,(-\alpha)\,P_r .
+```
 
 Main functions: `coefficients_from_pr_ec`, `free_energy`, `field_from_polarization`, `s_curve`, `static_loop`, `remanent_polarization`, `coercive_field`, `rho_from_time_constant`, `lk_simulate(t, E_func, ...)`, `lk_loop(frequency, E_amp, ...)`.
 
@@ -138,7 +140,9 @@ Main functions: `coefficients_from_pr_ec`, `free_energy`, `field_from_polarizati
 
 A scalar Preisach model on a discrete hysteron grid with Gaussian or Lorentzian coercive- and bias-field distributions (a non-zero bias centre gives imprint); major and minor loops with history; FORC simulation and the FORC distribution
 
-$$\rho(E_r, E) = -\frac12\,\frac{\partial^2 P}{\partial E_r\,\partial E}.$$
+```math
+\rho(E_r, E) = -\frac12\,\frac{\partial^2 P}{\partial E_r\,\partial E}.
+```
 
 ```python
 from fe_models.preisach import PreisachModel, simulate_forcs, forc_distribution
@@ -149,30 +153,32 @@ rho = forc_distribution(Er, E, P)
 
 ### `fe_models.kinetics` — KAI, NLS, Merz
 
-KAI $f(t) = 1 - \exp[-(t/t_0)^n]$; NLS with a Lorentzian or log-normal distribution of $\log_{10} t_0$, $f(t) = \int\{1 - \exp[-(t/10^u)^n]\}F(u)\,\mathrm{d}u$; the Merz law $t_0 = t_\infty\exp[(E_a/E)^m]$; and `fit_kai`, `fit_nls`, `fit_merz`. These models assume a field that is switched on and then held constant (see [Limitations](#limitations)).
+KAI $`f(t) = 1 - \exp[-(t/t_0)^n]`$; NLS with a Lorentzian or log-normal distribution of $`\log_{10} t_0`$, $`f(t) = \int\{1 - \exp[-(t/10^u)^n]\}F(u)\,\mathrm{d}u`$; the Merz law $`t_0 = t_\infty\exp[(E_a/E)^m]`$; and `fit_kai`, `fit_nls`, `fit_merz`. These models assume a field that is switched on and then held constant (see [Limitations](#limitations)).
 
 ### `fe_models.measurement` — PUND, P–E loops, leakage
 
-Triangular and PUND waveforms (`triangle_wave`, `pund_waveform`); the capacitor current $I = A\,\mathrm{d}D/\mathrm{d}t + I_{leak}(V)$ with $D = \varepsilon_0\varepsilon_r E + P_{sw}$ (`capacitor_current`, any callable for $P_{sw}$, for example `PreisachModel.apply`); P–E loops by current integration (`polarization_from_current`); PUND analysis (`analyze_pund`); ohmic leakage estimation and subtraction (`estimate_leakage_resistance`, `compensate_leakage_ohmic`); two-frequency leakage compensation $I_{leak} = (f_2 I_1 - f_1 I_2)/(f_2 - f_1)$ (`compensate_leakage_two_frequency`); $P_r$, $\pm E_c$ and imprint extraction (`extract_loop_parameters`); a phenomenological wake-up / fatigue curve (`wakeup_fatigue_form`, `cycling_pr`).
+Triangular and PUND waveforms (`triangle_wave`, `pund_waveform`); the capacitor current $`I = A\,\mathrm{d}D/\mathrm{d}t + I_{leak}(V)`$ with $`D = \varepsilon_0\varepsilon_r E + P_{sw}`$ (`capacitor_current`, any callable for $`P_{sw}`$, for example `PreisachModel.apply`); P–E loops by current integration (`polarization_from_current`); PUND analysis (`analyze_pund`); ohmic leakage estimation and subtraction (`estimate_leakage_resistance`, `compensate_leakage_ohmic`); two-frequency leakage compensation $`I_{leak} = (f_2 I_1 - f_1 I_2)/(f_2 - f_1)`$ (`compensate_leakage_two_frequency`); $`P_r`$, $`\pm E_c`$ and imprint extraction (`extract_loop_parameters`); a phenomenological wake-up / fatigue curve (`wakeup_fatigue_form`, `cycling_pr`).
 
 ### `fe_models.nls_multidomain` — dynamic multi-domain NLS capacitor model
 
-The film is split into $N_d$ classes of domains (quantiles of a Dagum activation-field distribution sampled on a logit grid). Class $k$ has a weight $w_k$, a state $s_k \in [-1, 1]$ and a signed nucleation progress $h_k$:
+The film is split into $`N_d`$ classes of domains (quantiles of a Dagum activation-field distribution sampled on a logit grid). Class $`k`$ has a weight $`w_k`$, a state $`s_k \in [-1, 1]`$ and a signed nucleation progress $`h_k`$:
 
-$$\bar x = \sum_k w_k s_k,\qquad R_k^{\pm} = \tau_0^{-1}\exp\left[-\left(V_{a,k}/|u_k|\right)^{\alpha}\right],\qquad \frac{\mathrm{d}s_k}{\mathrm{d}t} = \beta R_k^{+}(h_k^{+})^{\beta-1}(1 - s_k) - \beta R_k^{-}(h_k^{-})^{\beta-1}(1 + s_k),$$
+```math
+\bar x = \sum_k w_k s_k,\qquad R_k^{\pm} = \tau_0^{-1}\exp\left[-\left(V_{a,k}/|u_k|\right)^{\alpha}\right],\qquad \frac{\mathrm{d}s_k}{\mathrm{d}t} = \beta R_k^{+}(h_k^{+})^{\beta-1}(1 - s_k) - \beta R_k^{-}(h_k^{-})^{\beta-1}(1 + s_k),
+```
 
-with $u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k$, a progress variable that grows with $R$, relaxes only near 0 V and is reset when the drive reverses, a two-branch reversible charge, a screening state $\sigma$ and leakage. Under a constant field it reduces to the single-pulse NLS form $f = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}$. The full equation set of the core model (E1–E12), the optional history terms (E13–E20) and every parameter are in [spice/README.md](spice/README.md#equations); the reasoning behind each equation is in [docs/model-derivation.md](docs/model-derivation.md).
+with $`u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k`$, a progress variable that grows with $`R`$, relaxes only near 0 V and is reset when the drive reverses, a two-branch reversible charge, a screening state $`\sigma`$ and leakage. Under a constant field it reduces to the single-pulse NLS form $`f = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}`$. The full equation set of the core model (E1–E12), the optional history terms (E13–E20) and every parameter are in [spice/README.md](spice/README.md#equations); the reasoning behind each equation is in [docs/model-derivation.md](docs/model-derivation.md).
 
 Main functions: `generic_card(**overrides)`, `simulate(p, v_of_t, t_end, s0, breaks=...)` (Radau), `switched_fraction`, `train_fraction`, `bipolar_pairs`, `pund`, `repeat_waveform`, `step` (closed-form constant-voltage update), `march` (fixed-grid θ-method), `q_rev`, `q_term`, `j_leak`, `rhs`, `pwl`, `spice_model_card`.
 
-**Cycling and storage history (optional, off by default).** Fatigue is not written as "smaller $P_s$": pinned domains go into a pool that keeps their polarization and reversible charge, so a stored state does not lose charge as fatigue grows (E13). On top of that:
+**Cycling and storage history (optional, off by default).** Fatigue is not written as "smaller $`P_s`$": pinned domains go into a pool that keeps their polarization and reversible charge, so a stored state does not lose charge as fatigue grows (E13). On top of that:
 
 - wake-up driven by the amount of switching, with the disappearance of a pristine bias split (E14);
 - a reversible pool, depinned under field and re-pinned at each reversal, that explains the pulse-width dependence of wake-up (E18);
 - fatigue with two drivers (E15), a build-up time of the fatigue stress (E19) and leakage growing with fatigue (E20);
 - imprint from 12 trapping states with logarithmically spaced time constants (E17), with branch asymmetry (E17a) and field acceleration (E17b).
 
-Related functions: `cycle_history` (10¹² cycles in about 0.1 s; the result can be handed to SPICE through `nw0`, `af0`, `si0`, `zq0`), `loop_figures` (reads $P_r$ and $E_c$ the way the experiment does), `aged_card`; read sequences are in `fe_models.read_disturb`. Why each term is written this way, and how it compares with published data: Sections 4 and 7 of the derivation article.
+Related functions: `cycle_history` (10¹² cycles in about 0.1 s; the result can be handed to SPICE through `nw0`, `af0`, `si0`, `zq0`), `loop_figures` (reads $`P_r`$ and $`E_c`$ the way the experiment does), `aged_card`; read sequences are in `fe_models.read_disturb`. Why each term is written this way, and how it compares with published data: Sections 4 and 7 of the derivation article.
 
 ### `fe_models.units`
 
@@ -236,15 +242,15 @@ PYTHONPATH=src python -m unittest discover -s tests
 
 Without ngspice this runs 148 tests (two test classes skipped). With ngspice and the compiled model available (`NGSPICE`, and `OPENVAF` or an existing `spice/build/fecap_nls.osdi`), the skipped classes run all 19 testbenches and the loop of the device card as well: 153 tests in about 12 minutes.
 
-The original 43 tests cover: analytic helpers vs. numerical $P_r$, $E_c$; slow LK sweeps approach the static $E_c$ and fast sweeps widen it; Preisach symmetry, saturation at $\pm P_s$, minor loops inside the major loop, return-point memory and wiping-out; the FORC distribution recovers the hysteron distribution; KAI equals $1 - 1/e$ at $t_0$; a narrow NLS reduces to KAI; fits recover parameters with a fixed random seed; a linear capacitor gives zero PUND switching charge; leakage compensation recovers the leak-free loop; $E_c$, $P_r$ and imprint of a shifted loop.
+The original 43 tests cover: analytic helpers vs. numerical $`P_r`$, $`E_c`$; slow LK sweeps approach the static $`E_c`$ and fast sweeps widen it; Preisach symmetry, saturation at $`\pm P_s`$, minor loops inside the major loop, return-point memory and wiping-out; the FORC distribution recovers the hysteron distribution; KAI equals $`1 - 1/e`$ at $`t_0`$; a narrow NLS reduces to KAI; fits recover parameters with a fixed random seed; a linear capacitor gives zero PUND switching charge; leakage compensation recovers the leak-free loop; $`E_c`$, $`P_r`$ and imprint of a shifted loop.
 
-The 34 tests of `test_nls_multidomain.py` cover the multi-domain model: grid weights and ordering; one-directional rates; bounded states; reduction to the single-pulse NLS form (ODE vs. closed form within 2×10⁻⁴) and to the continuous NLS integral; closed forms vs. ODE for pulse trains, PUND and bipolar cycles; step-size convergence; no drift for ±26 mV and ±0.3 V over 10⁶ cycles; genuine accumulation converging with $N_d$; butterfly branches and the $f_{rev}$ split; passivity; charge conservation in a series-resistor circuit; three deliberately broken model versions that the checks must catch; the closed-form `step()` across a sub-threshold reversal; and consistency of the Verilog-A defaults, the parameter card and the testbenches with the Python module. The history terms are covered by `test_history.py` (23 tests), `test_cycling_r2.py` (18), `test_read_disturb.py` (13), `test_read_imprint_r2.py` (13) and `test_card_mukherjee.py` (6): bit-for-bit unchanged when off, terminal charge constant at fixed bias while damage grows, the log slope of imprint, cycle averaging against direct integration, passivity with every term on, and more.
+The 34 tests of `test_nls_multidomain.py` cover the multi-domain model: grid weights and ordering; one-directional rates; bounded states; reduction to the single-pulse NLS form (ODE vs. closed form within 2×10⁻⁴) and to the continuous NLS integral; closed forms vs. ODE for pulse trains, PUND and bipolar cycles; step-size convergence; no drift for ±26 mV and ±0.3 V over 10⁶ cycles; genuine accumulation converging with $`N_d`$; butterfly branches and the $`f_{rev}`$ split; passivity; charge conservation in a series-resistor circuit; three deliberately broken model versions that the checks must catch; the closed-form `step()` across a sub-threshold reversal; and consistency of the Verilog-A defaults, the parameter card and the testbenches with the Python module. The history terms are covered by `test_history.py` (23 tests), `test_cycling_r2.py` (18), `test_read_disturb.py` (13), `test_read_imprint_r2.py` (13) and `test_card_mukherjee.py` (6): bit-for-bit unchanged when off, terminal charge constant at fixed bias while damage grows, the log slope of imprint, cycle averaging against direct integration, passivity with every term on, and more.
 
 ## Limitations
 
-- **Illustrative parameters.** The defaults of the Landau, Preisach, kinetics and measurement modules ($P_r \approx 20$ µC/cm², $E_c \approx 1$ MV/cm, 10 nm, $\varepsilon_r \approx 30$) are typical magnitudes for HfO₂ films and are not fitted to any device. The multi-domain card is taken from published fits of particular devices and is not a fit to any device of yours.
-- **Scalar, one-dimensional models.** No depolarization field (except the optional term of the multi-domain model), interface layer and voltage division (except the multi-domain $\rho$, not validated), grain or phase structure, domain-wall detail, spatial non-uniformity, series resistance or RC time constant of the measurement setup.
-- **The Landau $E_c$ is the intrinsic coercive field** (where the metastable minimum disappears). Here it is a parameter that sets the loop width, not a prediction of the coercive field of real films; the LK viscosity $\rho$ is phenomenological.
+- **Illustrative parameters.** The defaults of the Landau, Preisach, kinetics and measurement modules ($`P_r \approx 20`$ µC/cm², $`E_c \approx 1`$ MV/cm, 10 nm, $`\varepsilon_r \approx 30`$) are typical magnitudes for HfO₂ films and are not fitted to any device. The multi-domain card is taken from published fits of particular devices and is not a fit to any device of yours.
+- **Scalar, one-dimensional models.** No depolarization field (except the optional term of the multi-domain model), interface layer and voltage division (except the multi-domain $`\rho`$, not validated), grain or phase structure, domain-wall detail, spatial non-uniformity, series resistance or RC time constant of the measurement setup.
+- **The Landau $`E_c`$ is the intrinsic coercive field** (where the metastable minimum disappears). Here it is a parameter that sets the loop width, not a prediction of the coercive field of real films; the LK viscosity $`\rho`$ is phenomenological.
 - **KAI, NLS (and similar models) and the Merz law assume a constant applied field during switching** (a field step that is then held). Fitting them to data taken under ramped or triangular fields (for example the switching current of a P–E loop) is outside the assumptions of the models. The multi-domain model removes this restriction by integrating the rates along the waveform.
 - The Preisach model is rate independent; the two-frequency leakage compensation relies on that and, for real films, the two frequencies should be close.
 - The wake-up / fatigue functions of `measurement` are curve shapes only (phenomenological), not a mechanism; the mechanistic version is the history terms of the multi-domain model.

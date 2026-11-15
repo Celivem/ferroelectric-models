@@ -48,7 +48,7 @@ Landau、Preisach、kinetics、measurement 四個模組的參數都是示意用�
 
 **循環與存放歷史對已發表數據**（說明見[推導文章第 4、7 節](docs/model-derivation.zh-TW.md#4-循環與存放歷史選用)與 [`docs/research/`](docs/research/)）
 
-| 喚醒中的 $2P_r$ 與 $2E_c$，五個溫度 | 喚醒對脈寬的依賴 |
+| 喚醒中的 $`2P_r`$ 與 $`2E_c`$，五個溫度 | 喚醒對脈寬的依賴 |
 |---|---|
 | ![Wake-up 2Pr and 2Ec](docs/research/r2_wakeup_coercive.png) | ![Pulse width](docs/research/r2_pulse_width.png) |
 | **讀取耐久：動態 imprint 對兩態電荷** | **imprint 隨時間與溫度** |
@@ -128,9 +128,11 @@ python examples/make_all_figures.py
 
 ### `fe_models.landau`：Landau–Devonshire 與 Landau–Khalatnikov
 
-自由能 $F = \alpha P^2 + \beta P^4 + \gamma P^6 - EP$；靜態 S 曲線 $E(P) = \partial F/\partial P$（含負電容分支）；由自由能求本徵矯頑場；由 $(P_r, E_c)$ 反推 $(\alpha, \beta)$；Landau–Khalatnikov 方程 $\rho\,\mathrm{d}P/\mathrm{d}t = -\partial F/\partial P$，任意 $E(t)$，用 `solve_ivp` 求解。2–4 模型中 $(\alpha, \beta)$ 與 $(P_r, E_c)$ 的關係（推導見 `landau.py` 的模組說明）：
+自由能 $`F = \alpha P^2 + \beta P^4 + \gamma P^6 - EP`$；靜態 S 曲線 $`E(P) = \partial F/\partial P`$（含負電容分支）；由自由能求本徵矯頑場；由 $`(P_r, E_c)`$ 反推 $`(\alpha, \beta)`$；Landau–Khalatnikov 方程 $`\rho\,\mathrm{d}P/\mathrm{d}t = -\partial F/\partial P`$，任意 $`E(t)`$，用 `solve_ivp` 求解。2–4 模型中 $`(\alpha, \beta)`$ 與 $`(P_r, E_c)`$ 的關係（推導見 `landau.py` 的模組說明）：
 
-$$P_r = \sqrt{-\alpha/2\beta}, \qquad E_c = \frac{4}{3\sqrt{3}}\,(-\alpha)\,P_r .$$
+```math
+P_r = \sqrt{-\alpha/2\beta}, \qquad E_c = \frac{4}{3\sqrt{3}}\,(-\alpha)\,P_r .
+```
 
 主要函式：`coefficients_from_pr_ec`、`free_energy`、`field_from_polarization`、`s_curve`、`static_loop`、`remanent_polarization`、`coercive_field`、`rho_from_time_constant`、`lk_simulate(t, E_func, ...)`、`lk_loop(frequency, E_amp, ...)`。
 
@@ -138,7 +140,9 @@ $$P_r = \sqrt{-\alpha/2\beta}, \qquad E_c = \frac{4}{3\sqrt{3}}\,(-\alpha)\,P_r 
 
 離散 hysteron（遲滯子）網格上的純量 Preisach 模型，矯頑場與偏壓場分布可選 Gaussian 或 Lorentzian（偏壓中心不為零時就有 imprint）；主迴線與帶歷史的次迴線；FORC 模擬與 FORC 分布
 
-$$\rho(E_r, E) = -\frac12\,\frac{\partial^2 P}{\partial E_r\,\partial E}.$$
+```math
+\rho(E_r, E) = -\frac12\,\frac{\partial^2 P}{\partial E_r\,\partial E}.
+```
 
 ```python
 from fe_models.preisach import PreisachModel, simulate_forcs, forc_distribution
@@ -149,30 +153,32 @@ rho = forc_distribution(Er, E, P)
 
 ### `fe_models.kinetics`：KAI、NLS、Merz
 
-KAI $f(t) = 1 - \exp[-(t/t_0)^n]$；NLS，$\log_{10} t_0$ 的分布可選 Lorentzian 或 log-normal，$f(t) = \int\{1 - \exp[-(t/10^u)^n]\}F(u)\,\mathrm{d}u$；Merz 定律 $t_0 = t_\infty\exp[(E_a/E)^m]$；以及 `fit_kai`、`fit_nls`、`fit_merz`。這些模型假設電場在切換期間固定（見[限制](#限制)）。
+KAI $`f(t) = 1 - \exp[-(t/t_0)^n]`$；NLS，$`\log_{10} t_0`$ 的分布可選 Lorentzian 或 log-normal，$`f(t) = \int\{1 - \exp[-(t/10^u)^n]\}F(u)\,\mathrm{d}u`$；Merz 定律 $`t_0 = t_\infty\exp[(E_a/E)^m]`$；以及 `fit_kai`、`fit_nls`、`fit_merz`。這些模型假設電場在切換期間固定（見[限制](#限制)）。
 
 ### `fe_models.measurement`：PUND、P–E 迴線、漏電
 
-三角波與 PUND 波形（`triangle_wave`、`pund_waveform`）；電容電流 $I = A\,\mathrm{d}D/\mathrm{d}t + I_{leak}(V)$，$D = \varepsilon_0\varepsilon_r E + P_{sw}$（`capacitor_current`，$P_{sw}$ 可用任何可呼叫物件，例如 `PreisachModel.apply`）；電流積分成 P–E 迴線（`polarization_from_current`）；PUND 分析（`analyze_pund`）；歐姆漏電的估計與扣除（`estimate_leakage_resistance`、`compensate_leakage_ohmic`）；雙頻率漏電補償 $I_{leak} = (f_2 I_1 - f_1 I_2)/(f_2 - f_1)$（`compensate_leakage_two_frequency`）；$P_r$、$\pm E_c$、imprint 萃取（`extract_loop_parameters`）；喚醒／疲勞的唯象曲線（`wakeup_fatigue_form`、`cycling_pr`）。
+三角波與 PUND 波形（`triangle_wave`、`pund_waveform`）；電容電流 $`I = A\,\mathrm{d}D/\mathrm{d}t + I_{leak}(V)`$，$`D = \varepsilon_0\varepsilon_r E + P_{sw}`$（`capacitor_current`，$`P_{sw}`$ 可用任何可呼叫物件，例如 `PreisachModel.apply`）；電流積分成 P–E 迴線（`polarization_from_current`）；PUND 分析（`analyze_pund`）；歐姆漏電的估計與扣除（`estimate_leakage_resistance`、`compensate_leakage_ohmic`）；雙頻率漏電補償 $`I_{leak} = (f_2 I_1 - f_1 I_2)/(f_2 - f_1)`$（`compensate_leakage_two_frequency`）；$`P_r`$、$`\pm E_c`$、imprint 萃取（`extract_loop_parameters`）；喚醒／疲勞的唯象曲線（`wakeup_fatigue_form`、`cycling_pr`）。
 
 ### `fe_models.nls_multidomain`：動態多域 NLS 電容模型
 
-把薄膜依「難翻的程度」分成 $N_d$ 類域（Dagum 活化場分布的分位數，在 logit 軸上取樣）。第 $k$ 類有權重 $w_k$、狀態 $s_k \in [-1, 1]$ 與帶正負號的成核進度 $h_k$：
+把薄膜依「難翻的程度」分成 $`N_d`$ 類域（Dagum 活化場分布的分位數，在 logit 軸上取樣）。第 $`k`$ 類有權重 $`w_k`$、狀態 $`s_k \in [-1, 1]`$ 與帶正負號的成核進度 $`h_k`$：
 
-$$\bar x = \sum_k w_k s_k,\qquad R_k^{\pm} = \tau_0^{-1}\exp\left[-\left(V_{a,k}/|u_k|\right)^{\alpha}\right],\qquad \frac{\mathrm{d}s_k}{\mathrm{d}t} = \beta R_k^{+}(h_k^{+})^{\beta-1}(1 - s_k) - \beta R_k^{-}(h_k^{-})^{\beta-1}(1 + s_k).$$
+```math
+\bar x = \sum_k w_k s_k,\qquad R_k^{\pm} = \tau_0^{-1}\exp\left[-\left(V_{a,k}/|u_k|\right)^{\alpha}\right],\qquad \frac{\mathrm{d}s_k}{\mathrm{d}t} = \beta R_k^{+}(h_k^{+})^{\beta-1}(1 - s_k) - \beta R_k^{-}(h_k^{-})^{\beta-1}(1 + s_k).
+```
 
-其中 $u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k$。進度變數隨 $R$ 增加、只在 0 V 附近鬆弛、驅動方向反轉時歸零；另外有兩支的可逆電荷、屏蔽狀態 $\sigma$ 與漏電。固定電場下，它退化成 NLS 的單脈衝式 $f = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}$。第 3 節的完整方程（E1–E12）、選用的歷史項（E13–E20）與每個參數見 [spice/README.md](spice/README.md#equations)；每條方程的理由見 [docs/model-derivation.zh-TW.md](docs/model-derivation.zh-TW.md)。
+其中 $`u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k`$。進度變數隨 $`R`$ 增加、只在 0 V 附近鬆弛、驅動方向反轉時歸零；另外有兩支的可逆電荷、屏蔽狀態 $`\sigma`$ 與漏電。固定電場下，它退化成 NLS 的單脈衝式 $`f = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}`$。第 3 節的完整方程（E1–E12）、選用的歷史項（E13–E20）與每個參數見 [spice/README.md](spice/README.md#equations)；每條方程的理由見 [docs/model-derivation.zh-TW.md](docs/model-derivation.zh-TW.md)。
 
 主要函式：`generic_card(**overrides)`、`simulate(p, v_of_t, t_end, s0, breaks=...)`（Radau）、`switched_fraction`、`train_fraction`、`bipolar_pairs`、`pund`、`repeat_waveform`、`step`（定電壓的閉式更新）、`march`（固定格點的 θ 法）、`q_rev`、`q_term`、`j_leak`、`rhs`、`pwl`、`spice_model_card`。
 
-**循環與存放歷史（選用，預設關閉）。** 疲勞不寫成「$P_s$ 變小」，而是把 domain 放進一個釘扎池，被釘住的部分保留自己的極化與可逆電荷，所以存好的狀態不會因疲勞而掉電荷（E13）。在這之上有：
+**循環與存放歷史（選用，預設關閉）。** 疲勞不寫成「$`P_s`$ 變小」，而是把 domain 放進一個釘扎池，被釘住的部分保留自己的極化與可逆電荷，所以存好的狀態不會因疲勞而掉電荷（E13）。在這之上有：
 
 - 由切換量驅動的喚醒，以及原始偏壓分裂的消失（E14）；
 - 加場時去釘扎、每次反轉再釘扎的可逆池，解釋喚醒對脈寬的依賴（E18）；
 - 兩種驅動的疲勞（E15）、疲勞應力的建立時間（E19）與漏電隨疲勞上升（E20）；
 - 12 個對數分布時間常數的 imprint（E17），以及兩支不對稱（E17a）與場加速（E17b）。
 
-相關函式：`cycle_history`（$10^{12}$ 次循環約 0.1 秒，結果可交給 SPICE 的 `nw0`、`af0`、`si0`、`zq0`）、`loop_figures`（照實驗的方式讀 $P_r$、$E_c$）、`aged_card`；讀取序列在 `fe_models.read_disturb`。為什麼這樣寫、與文獻數據的比較，見推導文章第 4、7 節。
+相關函式：`cycle_history`（$`10^{12}`$ 次循環約 0.1 秒，結果可交給 SPICE 的 `nw0`、`af0`、`si0`、`zq0`）、`loop_figures`（照實驗的方式讀 $`P_r`$、$`E_c`$）、`aged_card`；讀取序列在 `fe_models.read_disturb`。為什麼這樣寫、與文獻數據的比較，見推導文章第 4、7 節。
 
 ### `fe_models.units`
 
@@ -236,19 +242,19 @@ PYTHONPATH=src python -m unittest discover -s tests
 
 沒有 ngspice 時執行 148 項測試（兩個測試類別略過）。有 ngspice 與編譯好的模型時（設定 `NGSPICE`，以及 `OPENVAF` 或已存在的 `spice/build/fecap_nls.osdi`），被略過的類別會執行全部 19 個測試電路與元件卡的迴線：共 153 項，約 12 分鐘。
 
-原有的 43 項測試涵蓋：解析輔助式與數值 $P_r$、$E_c$ 一致；LK 慢掃趨近靜態 $E_c$、快掃 $E_c$ 變大；Preisach 對稱性、飽和於 $\pm P_s$、次迴線在主迴線內、return-point memory 與 wiping-out；FORC 分布還原 hysteron 分布；KAI 在 $t_0$ 等於 $1-1/e$；窄分布 NLS 退化為 KAI；固定亂數種子下擬合能取回參數；線性電容的 PUND 切換電荷為零；漏電補償還原無漏電迴線；平移迴線的 $E_c$、$P_r$、imprint 萃取。
+原有的 43 項測試涵蓋：解析輔助式與數值 $`P_r`$、$`E_c`$ 一致；LK 慢掃趨近靜態 $`E_c`$、快掃 $`E_c`$ 變大；Preisach 對稱性、飽和於 $`\pm P_s`$、次迴線在主迴線內、return-point memory 與 wiping-out；FORC 分布還原 hysteron 分布；KAI 在 $`t_0`$ 等於 $`1-1/e`$；窄分布 NLS 退化為 KAI；固定亂數種子下擬合能取回參數；線性電容的 PUND 切換電荷為零；漏電補償還原無漏電迴線；平移迴線的 $`E_c`$、$`P_r`$、imprint 萃取。
 
-`test_nls_multidomain.py` 的 34 項測試涵蓋多域模型：取樣權重與排序；單方向速率；狀態有界；退化成 NLS 單脈衝式（ODE 對閉式差 2×10⁻⁴ 以內）與連續 NLS 積分；脈衝串、PUND、雙極性週期的閉式對 ODE；步長收斂；±26 mV 與 ±0.3 V 在 10⁶ 圈下不漂移；真實累積隨 $N_d$ 收斂；蝴蝶形兩支與 $f_{rev}$ 的分配；被動性；串聯電阻電路的電荷守恆；三個故意改壞的版本必須被抓到；閉式 `step()` 跨越低於門檻的反轉；以及 Verilog-A 預設值、參數卡、測試電路與 Python 模組一致。歷史項由 `test_history.py`（23 項）、`test_cycling_r2.py`（18）、`test_read_disturb.py`（13）、`test_read_imprint_r2.py`（13）與 `test_card_mukherjee.py`（6）涵蓋：預設關閉時逐位元不變、固定偏壓下損傷增加時端點電荷不動、對數 imprint 的斜率、週期平均對直接積分、所有項打開時的被動性等。
+`test_nls_multidomain.py` 的 34 項測試涵蓋多域模型：取樣權重與排序；單方向速率；狀態有界；退化成 NLS 單脈衝式（ODE 對閉式差 2×10⁻⁴ 以內）與連續 NLS 積分；脈衝串、PUND、雙極性週期的閉式對 ODE；步長收斂；±26 mV 與 ±0.3 V 在 10⁶ 圈下不漂移；真實累積隨 $`N_d`$ 收斂；蝴蝶形兩支與 $`f_{rev}`$ 的分配；被動性；串聯電阻電路的電荷守恆；三個故意改壞的版本必須被抓到；閉式 `step()` 跨越低於門檻的反轉；以及 Verilog-A 預設值、參數卡、測試電路與 Python 模組一致。歷史項由 `test_history.py`（23 項）、`test_cycling_r2.py`（18）、`test_read_disturb.py`（13）、`test_read_imprint_r2.py`（13）與 `test_card_mukherjee.py`（6）涵蓋：預設關閉時逐位元不變、固定偏壓下損傷增加時端點電荷不動、對數 imprint 的斜率、週期平均對直接積分、所有項打開時的被動性等。
 
 ## 限制
 
-- **參數是示意值。** Landau、Preisach、kinetics、measurement 的預設值（$P_r \approx 20$ µC/cm²、$E_c \approx 1$ MV/cm、膜厚 10 nm、$\varepsilon_r \approx 30$）是 HfO₂ 薄膜常見的量級，沒有擬合任何元件。多域模型的參數卡取自特定元件的已發表擬合，也不是你手上元件的擬合。
-- **純量、一維模型。** 不含去極化場（多域模型的可選項除外）、介面層與電壓分配（多域模型的 $\rho$ 除外，且未驗證）、晶粒與多相結構、domain wall 的細節、空間不均勻，也不含串聯電阻與量測系統的 RC 時間常數。
-- **Landau 的 $E_c$ 是本徵矯頑場**（亞穩極小值消失的場），在這裡是決定迴線寬度的參數，不是對實際薄膜矯頑場的預測；LK 的黏滯係數 $\rho$ 是唯象參數。
+- **參數是示意值。** Landau、Preisach、kinetics、measurement 的預設值（$`P_r \approx 20`$ µC/cm²、$`E_c \approx 1`$ MV/cm、膜厚 10 nm、$`\varepsilon_r \approx 30`$）是 HfO₂ 薄膜常見的量級，沒有擬合任何元件。多域模型的參數卡取自特定元件的已發表擬合，也不是你手上元件的擬合。
+- **純量、一維模型。** 不含去極化場（多域模型的可選項除外）、介面層與電壓分配（多域模型的 $`\rho`$ 除外，且未驗證）、晶粒與多相結構、domain wall 的細節、空間不均勻，也不含串聯電阻與量測系統的 RC 時間常數。
+- **Landau 的 $`E_c`$ 是本徵矯頑場**（亞穩極小值消失的場），在這裡是決定迴線寬度的參數，不是對實際薄膜矯頑場的預測；LK 的黏滯係數 $`\rho`$ 是唯象參數。
 - **KAI、NLS（以及類似模型）與 Merz 定律都假設切換期間外加電場固定**（場階躍後保持不變）。把它們擬合到斜坡或三角波電場下取得的資料（例如 P–E 迴線的切換電流），超出了模型所述的假設。多域模型沿波形積分速率，因此沒有這個限制。
 - Preisach 模型與速率無關；雙頻率漏電補償依賴這個性質，用在實際薄膜時兩個頻率應該相近。
 - `measurement` 模組的喚醒／疲勞函式只是曲線形狀（唯象），不代表任何機制；有機制的版本是多域模型的歷史項。
-- **多域模型：** 歷史項沒有疲勞恢復與崩潰，也做不出漏電的早期陡升；讀取 $10^8$ 次後的下降有兩種解釋，數據分不出來；只有平均場（沒有單一晶粒的隨機性）；低於約 0.8 V 的速率與快於 200 ns 的切換都是引用數據的外推；溫度係數是占位值；HSPICE／Spectre 沒有測試。與已發表讀取耐久數據的比較顯示，低於矯頑電壓的讀取擾動取決於分布、動力學與寫入到讀取之間的 imprint，必須在目標元件上量測。完整清單見 [spice/README.md](spice/README.md#limitations)。
+- **多域模型：** 歷史項沒有疲勞恢復與崩潰，也做不出漏電的早期陡升；讀取 $`10^8`$ 次後的下降有兩種解釋，數據分不出來；只有平均場（沒有單一晶粒的隨機性）；低於約 0.8 V 的速率與快於 200 ns 的切換都是引用數據的外推；溫度係數是占位值；HSPICE／Spectre 沒有測試。與已發表讀取耐久數據的比較顯示，低於矯頑電壓的讀取擾動取決於分布、動力學與寫入到讀取之間的 imprint，必須在目標元件上量測。完整清單見 [spice/README.md](spice/README.md#limitations)。
 
 ## 相關工作
 
