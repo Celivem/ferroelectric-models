@@ -1,0 +1,36 @@
+# Source: M. Pesic et al., "Physical Mechanisms behind the Field-Cycling Behavior of HfO2-Based Ferroelectric Capacitors", Adv. Funct. Mater. 26, 4601-4612 (2016). DOI: 10.1002/adfm.201600590
+# Figure 1c (page 2): static DC leakage current density vs field, measured after 0-1k, 10k, 100k and 1M bipolar cycles (the 'Sim' line of the figure is not digitized).
+# Device: TiN / 10 nm Sr:HfO2 / TiN; cycling as in Fig. 1a (4 V, 10 kHz, room temperature; same data set as pesic2016_afm_fig1a_pr_cycles.csv).
+# cycles_nominal: 1e3 stands for the curve labelled '0-1 k' (wake-up stage, leakage unchanged per the text).
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: about +/-0.05 decade (marker centroid by colour segmentation; the 10k and 100k markers are partly hidden behind the 1M markers, their centroids can be biased by ~3 px = 0.045 decade); x nominal 0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0 MV/cm.
+# Axis calibration: decade ticks at py = 716 (1e-2) ... 1188.5 (1e-9), 67.5 px per decade; x ticks 1003 (1 MV/cm), 1140, 1277 (3 MV/cm), 136.9 px per MV/cm; px/py in the native page raster raw_pesic_p2-001.
+series,cycles_nominal,E_MV_cm,J_A_cm2,px,py,flag
+1M,1e+06,0.2,3.211e-08,893.4,1086.8,
+1M,1e+06,0.5,1.202e-07,933.5,1048.1,
+1M,1e+06,1.0,7.849e-07,1002.3,993.1,
+1M,1e+06,1.5,3.808e-06,1071.9,946.8,
+1M,1e+06,2.0,1.496e-05,1139.6,906.7,
+1M,1e+06,2.5,5.486e-05,1207.9,868.6,
+1M,1e+06,3.0,0.0001756,1274.5,834.5,
+100k,100000,0.2,1.774e-08,896.8,1104.2,partly_hidden
+100k,100000,0.5,5.619e-08,937.3,1070.4,partly_hidden
+100k,100000,1.0,4.133e-07,1006.4,1011.9,partly_hidden
+100k,100000,1.5,2.177e-06,1075.7,963.2,partly_hidden
+100k,100000,2.0,8.997e-06,1144.3,921.6,partly_hidden
+100k,100000,2.5,3.323e-05,1212.6,883.3,partly_hidden
+100k,100000,3.0,0.0001146,1276.5,847.0,partly_hidden
+10k,10000,0.2,1.074e-08,892.2,1118.9,partly_hidden
+10k,10000,0.5,3.345e-08,933.4,1085.6,partly_hidden
+10k,10000,1.0,2.512e-07,1001.3,1026.5,partly_hidden
+10k,10000,1.5,1.392e-06,1070.8,976.3,partly_hidden
+10k,10000,2.0,6.036e-06,1138.5,933.3,partly_hidden
+10k,10000,2.5,2.299e-05,1207.5,894.1,partly_hidden
+10k,10000,3.0,7.716e-05,1275.2,858.6,partly_hidden
+0-1k,1000,0.2,5.814e-09,894.5,1136.9,
+0-1k,1000,0.5,1.762e-08,932.8,1104.4,
+0-1k,1000,1.0,1.369e-07,1002.9,1044.3,
+0-1k,1000,1.5,7.331e-07,1070.9,995.1,
+0-1k,1000,2.0,3.368e-06,1139.9,950.4,
+0-1k,1000,2.5,1.305e-05,1208.3,910.7,
+0-1k,1000,3.0,4.233e-05,1274.6,876.2,

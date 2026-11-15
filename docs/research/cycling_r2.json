@@ -1,0 +1,465 @@
+{
+ "fengler2017_wakeup_2Pr_2Ec": {
+  "A: split + pinned, Arrhenius wake-up, P_s(T), E_c(T)": {
+   "ps": 0.16580584211745802,
+   "mul_ea": 0.5541939900648045,
+   "wk_vsp": 0.33960901832203744,
+   "wk_fp": 0.483683829832341,
+   "wk_kw": 0.28800458075641167,
+   "wk_ea": 1.0251674991429309e-19,
+   "tc_ps": 0.0015932670041994446,
+   "tc_ea": 0.0014500955864818839,
+   "wk_nw": 509.0775507815584,
+   "free parameters": 9,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.4635150279318171,
+   "RMS 2Ec [MV/cm] (18 points)": 0.03265026065967362,
+   "weighted cost": 25.699627889750634
+  },
+  "B: Arrhenius wake-up, no P_s(T) (tc_ps = 0)": {
+   "ps": 0.1924554259687606,
+   "mul_ea": 0.5799725253744449,
+   "wk_vsp": 0.33942803580814007,
+   "wk_fp": 0.514648270412158,
+   "wk_kw": 0.20436377386275634,
+   "wk_ea": 0.31804943130336005,
+   "tc_ps": 0.0,
+   "tc_ea": 0.0008581336088250959,
+   "wk_nw": 6064.256913493945,
+   "free parameters": 8,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.8400678034848027,
+   "RMS 2Ec [MV/cm] (18 points)": 0.03091195106426385,
+   "weighted cost": 58.9554611976191
+  },
+  "C: P_s(T), no Arrhenius wake-up (wk_ea = 0)": {
+   "ps": 0.1658064371028318,
+   "mul_ea": 0.5541942840217478,
+   "wk_vsp": 0.3396336010627149,
+   "wk_fp": 0.48371496426274546,
+   "wk_kw": 0.2879713887981343,
+   "wk_ea": 0.0,
+   "tc_ps": 0.0015932673909792787,
+   "tc_ea": 0.001450093208529732,
+   "wk_nw": 508.92008599950253,
+   "free parameters": 8,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.4635154818439987,
+   "RMS 2Ec [MV/cm] (18 points)": 0.03265021207584853,
+   "weighted cost": 25.699625619614043
+  },
+  "D: no split (wk_vsp = 0)": {
+   "ps": 0.1650363679185681,
+   "mul_ea": 0.5406244470274404,
+   "wk_vsp": 0.0,
+   "wk_fp": 0.4724918124252072,
+   "wk_kw": 0.30956914452915707,
+   "wk_ea": 7.666212045961916e-11,
+   "tc_ps": 0.0015958144058011018,
+   "tc_ea": 0.001338035832871532,
+   "wk_nw": 545.2925130696946,
+   "free parameters": 8,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.46128126587024404,
+   "RMS 2Ec [MV/cm] (18 points)": 0.07634150374472622,
+   "weighted cost": 73.1748803770603
+  },
+  "E: split only, no pinned fraction (wk_fp = 0)": {
+   "ps": 0.1500794281602114,
+   "mul_ea": 0.5556753205128185,
+   "wk_vsp": 1.083986352946989,
+   "wk_fp": 0.0,
+   "wk_kw": 0.4211286540812277,
+   "wk_ea": 3.2304246198133148e-06,
+   "tc_ps": 0.0015824441481060933,
+   "tc_ea": 0.0012687448001384787,
+   "wk_nw": 20.324075529412372,
+   "free parameters": 8,
+   "RMS 2Pr [uC/cm2] (35 points)": 3.162763328631059,
+   "RMS 2Ec [MV/cm] (18 points)": 0.04379761114436347,
+   "weighted cost": 719.3973385248676
+  },
+  "A0: as A with tc_ea <= 0": {
+   "ps": 0.2456357606744056,
+   "mul_ea": 0.6578152415924228,
+   "wk_vsp": 0.3757210846549294,
+   "wk_fp": 0.5932342171464394,
+   "wk_kw": 0.10013367890940117,
+   "wk_ea": 0.4533988445358258,
+   "tc_ps": -0.0005716146716971632,
+   "tc_ea": -9.187067754648119e-17,
+   "wk_nw": 53380.6052013168,
+   "free parameters": 9,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.9734101814852799,
+   "RMS 2Ec [MV/cm] (18 points)": 0.022442685102827327,
+   "weighted cost": 71.36365784559106
+  },
+  "B0: as B with tc_ea <= 0": {
+   "ps": 0.23530375795261996,
+   "mul_ea": 0.6595423224949059,
+   "wk_vsp": 0.4351499815150383,
+   "wk_fp": 0.6619366722918142,
+   "wk_kw": 0.08275137296990967,
+   "wk_ea": 0.3381255774289657,
+   "tc_ps": 0.0,
+   "tc_ea": -1.4158227308584145e-16,
+   "wk_nw": 2799.1882246741748,
+   "free parameters": 8,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.9312800268882232,
+   "RMS 2Ec [MV/cm] (18 points)": 0.03485951819194826,
+   "weighted cost": 72.86163427941278
+  },
+  "C0: as C with tc_ea <= 0": {
+   "ps": 0.16538361353676456,
+   "mul_ea": 0.5962631337847435,
+   "wk_vsp": 0.32215660101726556,
+   "wk_fp": 0.48490699542520543,
+   "wk_kw": 0.2886809750453036,
+   "wk_ea": 0.0,
+   "tc_ps": 0.0016291639513479608,
+   "tc_ea": -5.8820305960586045e-18,
+   "wk_nw": 495.1317624114086,
+   "free parameters": 8,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.4629100493613697,
+   "RMS 2Ec [MV/cm] (18 points)": 0.07810519953169721,
+   "weighted cost": 76.00422190484457
+  },
+  "F: Arrhenius wake-up + uncompensated ohmic leakage (no P_s(T), no E_c(T))": {
+   "leak_mode": true,
+   "ps": 0.15651748571096383,
+   "mul_ea": 0.5796359050056494,
+   "wk_vsp": 0.5214363571787315,
+   "wk_fp": 0.5669927882371117,
+   "wk_kw": 0.25845954893154593,
+   "wk_ea": 6.657126681485997e-12,
+   "log10 g_oh [A/m2/V] at 25 C": 2.8333554555099654,
+   "phi_oh [eV]": 0.09639344337112997,
+   "wk_nw": 493.6114290648268,
+   "free parameters": 9,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.6549571774480749,
+   "RMS 2Ec [MV/cm] (18 points)": 0.06084143305835958,
+   "weighted cost": 67.04462306630093
+  },
+  "F0: uncompensated ohmic leakage only (no Arrhenius wake-up, no P_s(T), no E_c(T))": {
+   "leak_mode": true,
+   "ps": 0.15647303665494022,
+   "mul_ea": 0.5796150891716357,
+   "wk_vsp": 0.5202995042601568,
+   "wk_fp": 0.5660432576814863,
+   "wk_kw": 0.2595837265949304,
+   "wk_ea": 0.0,
+   "log10 g_oh [A/m2/V] at 25 C": 2.832925210817744,
+   "phi_oh [eV]": 0.09646148584564491,
+   "wk_nw": 496.5245203274391,
+   "free parameters": 8,
+   "RMS 2Pr [uC/cm2] (35 points)": 0.6543315834351888,
+   "RMS 2Ec [MV/cm] (18 points)": 0.06088863656119237,
+   "weighted cost": 67.04474809846583
+  },
+  "read-out": "10 kHz triangle +-2.3 MV/cm (paper, Fig. 2 and Fig. 4 text), zero crossings of the total charge P + dielectric + reversible, loop centred; cycling 2.3 MV/cm 100 kHz rectangular; read at the cycling temperature (assumed)",
+  "round-one read-out on fit A0 (mid crossing of the switching state) [MV/cm]": {
+   "25 C": [
+    2.433000411628029,
+    2.389214986409572,
+    2.354157156873143,
+    2.321073834476583,
+    2.3071339264543593,
+    2.282980964348628,
+    2.2723125462653817
+   ],
+   "125 C": [
+    2.3568562688641244,
+    2.3103666058418213,
+    2.2750976815781487,
+    2.2510910317736395,
+    2.2437835765430596,
+    2.227265910459782,
+    2.221193164110026
+   ]
+  },
+  "uncompensated ohmic leakage, woken film, fit A0 card": {
+   "g_oh = 0 A/m2/V, 0.3 eV": {
+    "2Pr 25 C": 46.11611198555129,
+    "2Pr 125 C": 43.52779444444521,
+    "2Ec 25 C": 2.1121528392132634,
+    "2Ec 125 C": 2.107511252858049
+   },
+   "g_oh = 30 A/m2/V, 0.3 eV": {
+    "2Pr 25 C": 46.23686198555129,
+    "2Pr 125 C": 45.79525739391558,
+    "2Ec 25 C": 2.1131098017732968,
+    "2Ec 125 C": 2.1264699463342
+   },
+   "g_oh = 100 A/m2/V, 0.3 eV": {
+    "2Pr 25 C": 46.51861198555129,
+    "2Pr 125 C": 51.08600427601311,
+    "2Ec 25 C": 2.1153408851607844,
+    "2Ec 125 C": 2.172867867332431
+   },
+   "g_oh = 300 A/m2/V, 0.3 eV": {
+    "2Pr 25 C": 47.32361198555128,
+    "2Pr 125 C": 66.20242393914891,
+    "2Ec 25 C": 2.1217013334216386,
+    "2Ec 125 C": 2.3027959369221147
+   }
+  }
+ },
+ "lenox2023_pulse_width": {
+  "Fig. 5a only (9 points)": {
+   "m = 0 (switching count)": {
+    "RMS": 0.06137788237178309,
+    "amplitude": 0.2558065311034184,
+    "kappa": 0.1707268838743984
+   },
+   "m = 1 (time under field)": {
+    "RMS": 0.02782101269216039,
+    "amplitude": 4.999999999999999,
+    "kappa": 0.29995741775350154
+   },
+   "m = beta = 2.07 (rare switching of pinned domains)": {
+    "RMS": 0.007091136390469147,
+    "amplitude": 0.3531676365392862,
+    "kappa": 0.282176456617307
+   },
+   "m free": {
+    "m": 2.4299502958406944,
+    "m std": 0.23459670229387805,
+    "RMS": 0.005546728249461688
+   },
+   "E18 depinning + re-pinning, 4 parameters": {
+    "RMS": 0.006654987891497072,
+    "wk_fq": 0.3511911749968172,
+    "re-pinning: wk_rho (rest channel, n_q = 2)": 0.5715539674415567,
+    "or wk_tr = wk_rho / 10 kHz [s] (per-reversal channel)": 5.7155396744155674e-05,
+    "rho_eff at 2 MV/cm = wk_rho / 4": 0.14288849186038918,
+    "wk_q1 [s at 1 MV/cm]": 0.04085830123085896,
+    "wk_q2 [s at 1 MV/cm]": 39164.06376223688
+   },
+   "E18 without re-pinning (rho = 0), 3 parameters": {
+    "RMS": 0.03040612258356571
+   }
+  },
+  "Fig. 5a + text at 1e6 + Fig. 5b (2 us to 1e8), 23 points": {
+   "m = 0 (switching count)": {
+    "RMS": 0.07376302851022319,
+    "amplitude": 0.11662500003062597,
+    "kappa": 0.6
+   },
+   "m = 1 (time under field)": {
+    "RMS": 0.07234673747772694,
+    "amplitude": 0.12197378104979992,
+    "kappa": 0.8714363682762973
+   },
+   "m = beta = 2.07 (rare switching of pinned domains)": {
+    "RMS": 0.0675606459094983,
+    "amplitude": 4.999999999999604,
+    "kappa": 0.12878126533185452
+   },
+   "m free": {
+    "m": 7.5294398024728615,
+    "m std": 2.0001605998535634,
+    "RMS": 0.024973418734567376
+   },
+   "E18 depinning + re-pinning, 4 parameters": {
+    "RMS": 0.011557904862796592,
+    "wk_fq": 0.25848922821230524,
+    "re-pinning: wk_rho (rest channel, n_q = 2)": 0.6833590524950248,
+    "or wk_tr = wk_rho / 10 kHz [s] (per-reversal channel)": 6.833590524950248e-05,
+    "rho_eff at 2 MV/cm = wk_rho / 4": 0.1708397631237562,
+    "wk_q1 [s at 1 MV/cm]": 0.06912188535174284,
+    "wk_q2 [s at 1 MV/cm]": 129.22933150656036
+   },
+   "E18 without re-pinning (rho = 0), 3 parameters": {
+    "RMS": 0.07235587688419225
+   }
+  },
+  "digitizing uncertainty": "+-0.015 (Fig. 5a/5b); text values exact but leakage-affected for 20/50 us",
+  "full model (cycle_history) vs closed form, max |difference|": {
+   "2 us": 0.010019846250185038,
+   "5 us": 0.005787458635735376,
+   "10 us": 0.0037829441264676245,
+   "20 us": 0.002097792780188401,
+   "50 us": 0.0009542350633016117
+  },
+  "full model (per-reversal channel) at the 23 data points, RMS": 0.013995840467960196,
+  "plateau Z vs pulse width": {
+   "2 us": 0.19125187134550697,
+   "5 us": 0.370152218257879,
+   "10 us": 0.539812864639704,
+   "20 us": 0.7009315979869128,
+   "50 us": 0.854137668048327
+  },
+  "prediction: Pr/Pr0 after resting at 0 V (50 us, 1e8 cycles)": {
+   "per-reversal channel (wk_tr)": {
+    "1 s": 1.2985889537981565,
+    "60 s": 1.2985889537981565,
+    "3600 s": 1.2985889537981565,
+    "86400 s": 1.2985889537981565
+   },
+   "rest channel (wk_rho)": {
+    "1 s": 1.1850575237490673,
+    "60 s": 1.0338705880771122,
+    "3600 s": 1.000000000000002,
+    "86400 s": 1.0
+   }
+  }
+ },
+ "lenox2023_leakage_failure": {
+  "plain time under field (no build-up)": {
+   "onset dose [s] (2, 5, 10, 20, 50 us)": [
+    404.04796000594934,
+    100.40449600134484,
+    60.12119880077846,
+    80.080599201019,
+    100.0400000012595
+   ],
+   "spread (max/min)": 6.720557275393478,
+   "log std": 0.6585340885303859,
+   "failure dose [s]": {
+    "2 us": 808.0959200118987,
+    "20 us": 400.40299600509496,
+    "50 us": 300.1200000037785
+   }
+  },
+  "with E19 build-up, n_F = 1": {
+   "t_L [us]": 13.289716097408034,
+   "onset dose [s]": [
+    99.36127986271077,
+    37.48385449369542,
+    29.877348679783896,
+    49.73511981958406,
+    66.23271581069864
+   ],
+   "spread (max/min)": 3.3256391297512367,
+   "log std": 0.42278804394650565,
+   "failure dose [s]": {
+    "2 us": 198.72255972542155,
+    "20 us": 248.67559909792027,
+    "50 us": 198.6981474320959
+   }
+  },
+  "with E19 build-up, n_F = 2": {
+   "t_L [us]": 3.421157890443206,
+   "onset dose [s]": [
+    98.88582073292723,
+    47.75045410059614,
+    40.6900904370243,
+    66.43246298255116,
+    88.47729572343586
+   ],
+   "spread (max/min)": 2.4302187503360786,
+   "log std": 0.3423363202520541,
+   "failure dose [s]": {
+    "2 us": 197.77164146585446,
+    "20 us": 332.1623149127558,
+    "50 us": 265.43188717030756
+   }
+  },
+  "with E19 build-up, n_F = 4": {
+   "t_L [us]": 1.7358085573962219,
+   "onset dose [s]": [
+    82.70046148922033,
+    52.03311969092794,
+    44.532336351403316,
+    69.64505487368596,
+    92.4368198569703
+   ],
+   "spread (max/min)": 2.0757235624817474,
+   "log std": 0.2751507085647593,
+   "failure dose [s]": {
+    "2 us": 165.40092297844066,
+    "20 us": 348.2252743684298,
+    "50 us": 277.3104595709109
+   }
+  },
+  "E20 growth fit, ratio - 1 = k_L (dose)^m_L (4 points, n_F = 4 build-up)": {
+   "m_L": 1.214338915538892,
+   "residual factor (rms of ln)": 3.1638771850569913,
+   "points (w us, cycles, %)": [
+    [
+     2.0,
+     100000000.0,
+     51.0
+    ],
+    [
+     20.0,
+     10000000.0,
+     240.0
+    ],
+    [
+     50.0,
+     1000000.0,
+     400.0
+    ],
+    [
+     50.0,
+     3000000.0,
+     2500.0
+    ]
+   ]
+  }
+ },
+ "pesic2016_leakage_E20": {
+  "data": "Fig. 1c (digitized) J(N)/J(0-1k), geometric mean over 0.2-3 MV/cm; Fig. 1a fatigue fitted in round one",
+  "J ratio (geometric mean)": {
+   "10000": 1.8359713102647626,
+   "100000": 2.870658483700108,
+   "1e+06": 5.076731707146675
+  },
+  "J ratio range over the 7 fields": {
+   "10000": [
+    1.761685823754789,
+    1.8987859773564315
+   ],
+   "100000": [
+    2.5463601532567046,
+    3.188989784335982
+   ],
+   "1e+06": [
+    4.148358138436097,
+    6.821793416572077
+   ]
+  },
+  "a_F from the round-one Pesic fit": {
+   "1000": 0.007419443603890955,
+   "10000": 0.07419443603890954,
+   "100000": 0.7419443603890954,
+   "1e+06": 7.419443603890955
+  },
+  "D from the round-one Pesic fit": {
+   "1000": 0.001621360861002427,
+   "10000": 0.015684774960628606,
+   "100000": 0.11489327866830344,
+   "1e+06": 0.21920882419884116
+  },
+  "fit fat_lk, fat_lm (2 parameters, 3 ratios; J_0 = the 0-1k curve)": {
+   "fat_lk": 2.0559092867602176,
+   "fat_lm": 0.34288192292301845,
+   "RMS of ln ratio": 0.0038415364371341626,
+   "predicted J(1e3)/J_0 (data: 1, same curve as 0 cycles)": 1.38264212310892
+  }
+ },
+ "pesic2016_recovery": {
+  "1st-run fatigue drop (max - last) [ticks]": 2.356,
+  "second runs": {
+   "2nd_after_1s": {
+    "wait [s]": 1.0,
+    "start (N = 1) - end of 1st run [ticks]": -0.552,
+    "plateau max - end of 1st run [ticks]": -0.264,
+    "plateau recovery / 1st-run fatigue drop": -0.11205432937181665,
+    "cycles to fall 1 tick below own max": 510143.44154643244
+   },
+   "2nd_after_1min": {
+    "wait [s]": 60.0,
+    "start (N = 1) - end of 1st run [ticks]": -0.304,
+    "plateau max - end of 1st run [ticks]": 0.046,
+    "plateau recovery / 1st-run fatigue drop": 0.019524617996604415,
+    "cycles to fall 1 tick below own max": 821048.194137507
+   },
+   "2nd_after_30min": {
+    "wait [s]": 1800.0,
+    "start (N = 1) - end of 1st run [ticks]": 0.391,
+    "plateau max - end of 1st run [ticks]": 0.6880000000000001,
+    "plateau recovery / 1st-run fatigue drop": 0.2920203735144313,
+    "cycles to fall 1 tick below own max": 1556513.5922311966
+   }
+  },
+  "1st run: cycles to fall 1 tick below max": 48787850.94572127
+ }
+}

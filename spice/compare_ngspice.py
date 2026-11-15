@@ -99,7 +99,7 @@ class Instance:
 
     def nm_history(self):
         h = self.history
-        return nm.History(nw=h.get("nw0", 0.0), af=h.get("af0", 0.0), si=h.get("si0", 0.0))
+        return nm.History(nw=h.get("nw0", 0.0), af=h.get("af0", 0.0), si=h.get("si0", 0.0), zq=h.get("zq0", 0.0))
 
 
 @dataclass
@@ -537,6 +537,66 @@ def deck_history():
                 overrides=ov)
 
 
+# ------------------------------------------------ cycling, second round (E18-E20)
+def deck_depin():
+    """Reversible depinning pool: pulse train (duty 25 %), 0 V rest (re-pinning), pulses again; at 85 C."""
+    ov = dict(wk_fq=0.4, wk_rho=0.3, wk_tr=2e-6, wk_q1=2e-6, wk_q2=2e-4, wk_nq=2.0, wk_ea=0.2)
+    segs = [(0.0, 1e-6)]
+    for _ in range(6):
+        segs += [(3.0, 5e-6), (0.0, 5e-6), (-3.0, 5e-6), (0.0, 5e-6)]
+    segs += [(0.0, 200e-6)]
+    for _ in range(3):
+        segs += [(3.0, 5e-6), (0.0, 5e-6), (-3.0, 5e-6), (0.0, 5e-6)]
+    t, vv, ends = segments(segs, edge=0.1e-6)
+    insts = [Instance("6 bipolar +-3 V 5 us pulse pairs, 200 us rest, 3 more pairs; pristine", t, vv, -1.0),
+             Instance("same, starting half depinned (zq0 = 0.5)", t, vv, -1.0, history=dict(zq0=0.5))]
+    p = nm.generic_card(**ov)
+
+    def compare(d, rows, store):
+        tn = d["time"]
+        for k, inst in enumerate(insts, 1):
+            qn = d[f"v(q{k})"]
+            r = _sim(inst, p=p, rtol=1e-8, temp=358.15, max_step=2e-8)
+            qp = np.interp(tn, r["t"], r["qd"]) / UC
+            lab = "zq0 = 0.5" if inst.history else "pristine"
+            check(rows, f"waveform max |dQ/A|, {lab} [uC/cm2]", np.max(np.abs(qn - qp)), 0.0, 0.05)
+            # ends of positive pulses: there the pinned part (written negative) shows up in the charge
+            for j in (1, 21, 26, 34):
+                check(rows, f"Q/A at end of segment {j}, {lab} [uC/cm2]", np.interp(ends[j], tn, qn),
+                      np.interp(ends[j], r["t"], r["qd"]) / UC, 0.03)
+            store[lab] = dict(t_ng=tn, q_ng=qn, t_py=r["t"], q_py=r["qd"] / UC, Z=r["Z"], f=r["f"])
+
+    return Deck("depin", "Reversible depinning pool (E18) at 85 C", insts, float(t[-1]), 5e-8, compare=compare,
+                overrides=ov, temp=85.0)
+
+
+def deck_fatlag():
+    """Fatigue with a lagged field-time driver and fatigue-induced leakage, then a 1.5 V hold to read the leakage."""
+    ov = dict(fat_d=0.4, fat_tf=3e-4, fat_nf=2.0, fat_kf=0.7, fat_tl=2e-6, fat_lk=200.0, fat_lm=1.5, g_oh=100.0)
+    segs = [(0.0, 1e-6)]
+    for w in (2e-6, 2e-6, 8e-6, 8e-6, 20e-6, 20e-6):
+        segs += [(3.0, w), (0.0, 4e-6), (-3.0, w), (0.0, 4e-6)]
+    segs += [(1.5, 30e-6)]
+    t, vv, ends = segments(segs, edge=0.5e-6)   # soft edges: the switching follows the ramp
+    inst = Instance("bipolar +-3 V pulses of 2, 8 and 20 us, then a 30 us hold at 1.5 V", t, vv, -1.0)
+    p = nm.generic_card(**ov)
+
+    def compare(d, rows, store):
+        tn, qn, iv = d["time"], d["v(q1)"], -d["i(v1)"]
+        r = _sim(inst, p=p, rtol=1e-8, max_step=2e-8)
+        qp = np.interp(tn, r["t"], r["qd"]) / UC
+        check(rows, "waveform max |dQ/A| [uC/cm2]", np.max(np.abs(qn - qp)), 0.0, 0.05)
+        check(rows, "final Q/A [uC/cm2]", qn[-1], r["qd"][-1] / UC, 0.03)
+        # terminal current at the end of the hold: leakage times 1 + k_L a_F^m_L
+        check(rows, "I at end of the 1.5 V hold [A]", iv[-1], r["i_leak"][-1], 0.02, rel=True)
+        check(rows, "leakage factor at the end (python)", float(nm.leak_factor(p, r["a_f"][-1])),
+              float(r["i_leak"][-1] / (AREA * nm.j_leak(p, 1.5))), 1e-9, rel=True)
+        store.update(t_ng=tn, q_ng=qn, t_py=r["t"], q_py=r["qd"] / UC, a_f=r["a_f"], v_lag=r["v_lag"])
+
+    return Deck("fatlag", "Lagged field-time fatigue (E19) and fatigue-induced leakage (E20)", [inst], float(t[-1]),
+                5e-8, compare=compare, overrides=ov)
+
+
 LEAK_V = np.round(np.arange(-3.0, 3.0001, 0.05), 4)
 
 
@@ -574,7 +634,8 @@ def deck_leakage():
 def all_decks():
     return [deck_pund(), deck_loop(1e3), deck_loop(1e4), deck_loop(1e5), deck_switching(), deck_minor(),
             deck_small_signal(), deck_slow_accumulation(), deck_reversible(), deck_backswitch(), deck_temperature(),
-            deck_leakage(), deck_wakeup(), deck_fatigue(), deck_imprint(), deck_history()]
+            deck_leakage(), deck_wakeup(), deck_fatigue(), deck_imprint(), deck_history(), deck_depin(),
+            deck_fatlag()]
 
 
 # ------------------------------------------------------------ running
