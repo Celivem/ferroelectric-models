@@ -275,3 +275,155 @@ def read_sequence(p, v_read, ns, t_r=5e-7, t_pw=5e-7, t_f=5e-7, t_off=5e-7, nd=2
     res["n"] = ns
     res["cmw"] = np.abs(res["q_plus"] - res["q_minus"])
     return res
+
+
+# ------------------------------------------------- reads with a dynamic stored-state imprint
+def read_period_time(p, v_read, t_r=5e-7, t_pw=5e-7, t_f=5e-7, t_off=5e-7):
+    """(period, imprint time per period): the second weights the period with the E17b acceleration."""
+    tt = 0.5 * (_GL_X + 1.0)
+    edge = sum(w * 0.5 * float(nm.imprint_accel(p, v_read * x)) for w, x in zip(_GL_W, tt))
+    return t_r + t_pw + t_f + t_off, edge * (t_r + t_f) + float(nm.imprint_accel(p, v_read)) * t_pw + t_off
+
+
+def stored_imprint(p, s0, t_eff, t_write=1e-6, v_write=None, sigma_pre=0.0, temp=None):
+    """Mean imprint state sigma_I of a state ``s0`` written at t = 0, after an imprint time ``t_eff`` [s].
+
+    E17/E17b for a held state (x_t = s0): every trapping state relaxes toward
+    s0.  The write pulse (``v_write``, default 3 V with the sign of s0, held for
+    ``t_write``) counts as ``t_write * cosh(rho v_write / V_a)`` of imprint time;
+    before it every state is at ``sigma_pre``.  ``t_eff`` is the imprint time
+    after the write (time at 0 V plus the accelerated read time).  Returns an
+    array shaped like ``t_eff``.
+    """
+    tau = nm.imprint_taus(p, temp)
+    v_write = 3.0 * s0 if v_write is None else v_write
+    tw = t_write * float(nm.imprint_accel(p, v_write))
+    sw = s0 + (sigma_pre - s0) * np.exp(-tw / tau)
+    t_eff = np.asarray(t_eff, float)
+    return np.mean(s0 + (sw - s0) * np.exp(-t_eff[..., None] / tau), axis=-1)
+
+
+def imprint_card(p, s_i, sigma_ref=0.0, s0=1.0, branches_ref=None):
+    """Card for a held state ``s0`` with mean imprint ``s_i`` (E17, E17a), relative to calibration states.
+
+    The activation fields of ``p`` were calibrated (loop peaks) on a state whose
+    imprint was ``s0 * sigma_ref`` (the loop's own imprint), so the switching
+    part sees only the difference; the reversible branches were fitted on states
+    with imprint ``s0 * branches_ref`` (default ``sigma_ref``).
+    """
+    vi_ = p["imp_v"]
+    rb = sigma_ref if branches_ref is None else branches_ref
+    q = dict(p, vimp=p["vimp"] - vi_ * (s_i - s0 * sigma_ref))
+    w = float(nm.imprint_widening(p, s_i) - nm.imprint_widening(p, sigma_ref))
+    if w != 0.0:
+        q["_imp_w"] = w
+    q["vi"] = p["vi"] - vi_ * (s_i - s0 * rb) / p["rho"]
+    q["vs"] = p["vs"] + float(nm.imprint_widening(p, s_i) - nm.imprint_widening(p, rb)) / p["rho"]
+    return q
+
+
+def _per_read(q, dom, s0, v_read, t_r, t_pw, t_f, t_off, gate_centre, hs):
+    """One read + off time from h = hs (m, nd): (lambda to plateau end, lambda of read + off, h after, terms)."""
+    beta = q["beta"]
+    a_rp, a, r0, g, h_inf, th = _hazard_terms(q, dom, s0, v_read, t_r, t_pw, t_f, t_off, gate_centre)
+    tt = 0.5 * t_off * (_GL_X + 1.0)
+    e_t = np.exp(-tt / th) if np.isfinite(th) else np.ones_like(tt)
+    he = hs + a
+    l_rp = (hs + a_rp) ** beta - hs**beta
+    l_read = he**beta - hs**beta
+    hh = he[None] * e_t[:, None, None] + h_inf[None, None, :] * (1.0 - e_t[:, None, None])
+    l_off = np.tensordot(0.5 * t_off * _GL_W, beta * r0 * hh ** (beta - 1.0), axes=(0, 0))
+    return l_rp, l_read + l_off, he * g + h_inf * (1.0 - g), (a, r0, g, h_inf)
+
+
+def read_sequence_dynamic(p, v_read, ns, t_delay, t_r=5e-7, t_pw=5e-7, t_f=5e-7, t_off=5e-7, nd=256,
+                          sigma_loop=0.0, sigma_cv=None, t_write=1e-6, v_write=2.7, sigma_pre=0.0,
+                          gate_centre=None, k_exact=200, n_grid=300):
+    """:func:`read_sequence` with the stored-state imprint growing with time (E17, E17a, E17b).
+
+    The imprint of each stored state follows :func:`stored_imprint` with the
+    imprint time ``t_delay + (n - 1) T_eff`` at the start of read ``n``
+    (``T_eff`` from :func:`read_period_time`) and is held during the read.  The
+    switching part uses :func:`imprint_card` relative to the loop's own imprint
+    ``sigma_loop`` (the state on which the activation fields were calibrated),
+    the reversible part relative to ``sigma_cv`` (the C-V states; default
+    ``sigma_loop``).  ``x_t`` is taken as the stored state (the switched
+    fraction stays small) and only the destroying direction is driven, as in
+    :func:`read_sequence`.  Beyond ``k_exact`` reads h follows
+    dh/dn = c0(n) - (1 - g(n)) h on a log grid of ``n_grid`` points
+    (coefficients frozen on each interval) and the per-read hazard is integrated
+    with the trapezoidal rule.  Returns the dict of :func:`read_sequence` plus
+    ``s_i_plus`` / ``s_i_minus`` (imprint at read n), ``period`` and
+    ``imprint_time_per_period``.
+    """
+    ns = np.atleast_1d(np.asarray(ns, dtype=float))
+    if np.any(ns < 1) or np.any(ns != np.round(ns)):
+        raise ValueError("read numbers must be integers >= 1")
+    T, T_eff = read_period_time(p, v_read, t_r, t_pw, t_f, t_off)
+    sig_cv = sigma_loop if sigma_cv is None else sigma_cv
+    res = {}
+    for s0, tag in ((1.0, "plus"), (-1.0, "minus")):
+        def card(k):
+            si = float(stored_imprint(p, s0, t_delay + (k - 1.0) * T_eff, t_write, s0 * abs(v_write),
+                                      s0 * sigma_pre))
+            return imprint_card(p, si, sigma_loop, s0, sig_cv), si
+
+        q0, _ = card(1.0)
+        dom = nm.make_domains(q0, nd)   # the activation fields do not depend on the imprint (only u does)
+        nmax = int(ns.max())
+        kmax = int(min(nmax, k_exact))
+        hs = np.zeros((1, nd))
+        cum = np.zeros(nd)
+        want = {}
+        for k in range(1, kmax + 1):
+            q, si = card(float(k))
+            l_rp, l_tot, h_next, _ = _per_read(q, dom, s0, v_read, t_r, t_pw, t_f, t_off, gate_centre, hs)
+            want[k] = (cum.copy(), cum + l_rp[0], si, q)
+            cum = cum + l_tot[0]
+            hs = h_next
+        if nmax > kmax:
+            k0 = kmax + 1.0
+            grid = np.unique(np.concatenate([np.geomspace(k0, nmax, n_grid), ns[ns > kmax], [k0]]))
+            h = hs[0]
+            lt_prev = None
+            for i, k in enumerate(grid):
+                q, si = card(k)
+                l_rp, l_tot, _, (a, r0, g, h_inf) = _per_read(q, dom, s0, v_read, t_r, t_pw, t_f, t_off,
+                                                              gate_centre, h[None])
+                if i > 0:
+                    # sum_{k0}^{n-1} L ~ int_{k0}^{n} L dk + [L(k0) - L(n)] / 2 (Euler-Maclaurin, as read_sequence)
+                    cum = cum + 0.5 * (l_tot[0] + lt_prev) * (k - grid[i - 1])
+                else:
+                    l0 = l_tot[0]
+                if k in ns:
+                    before = cum + 0.5 * (l0 - l_tot[0])
+                    want[int(k)] = (before, before + l_rp[0], si, q)
+                if i + 1 < len(grid):
+                    dk = grid[i + 1] - k
+                    c0 = g * a + h_inf * (1.0 - g)
+                    lam = 1.0 - g
+                    if lam * dk > 1e-12:
+                        hss = c0 / lam
+                        h = hss + (h - hss) * np.exp(-lam * dk)
+                    else:
+                        h = h + c0 * dk
+                lt_prev = l_tot[0]
+        qq, qs, ff, sis = [], [], [], []
+        for n in ns:
+            c_b, c_p, si, q = want[int(n)]
+            x_b = s0 * float(dom.w @ (2.0 * np.exp(-c_b) - 1.0))
+            x_p = s0 * float(dom.w @ (2.0 * np.exp(-c_p) - 1.0))
+            y = _y_end(v_read, t_r, t_pw, q["tau_r"])
+            q_sw = nm.ps_of_t(q, q["t0"]) * (x_p - x_b)
+            qq.append((q_sw + nm.q_rev(q, v_read, x_p, y)) * q["area"])
+            qs.append(q_sw * q["area"])
+            ff.append(0.5 * (1.0 - s0 * x_p))
+            sis.append(si)
+        res[f"q_{tag}"] = np.array(qq)
+        res[f"q_sw_{tag}"] = np.array(qs)
+        res[f"f_{tag}"] = np.array(ff)
+        res[f"s_i_{tag}"] = np.array(sis)
+    res["n"] = ns
+    res["cmw"] = np.abs(res["q_plus"] - res["q_minus"])
+    res["period"], res["imprint_time_per_period"] = T, T_eff
+    return res

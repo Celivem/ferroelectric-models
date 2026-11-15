@@ -156,3 +156,7 @@
 * ^ [1] leakage increase per unit fatigue age, J -> J (1 + k_L a_F^m_L) (E20). Source: off by default; fit knob (leakage-vs-cycling data)
 + fat_lm=1
 * ^ [1] exponent of the fatigue-induced leakage increase (E20). Source: illustrative; inactive while fat_lk = 0
++ imp_kw=0
+* ^ [1] branch asymmetry of the imprint: the switching field out of the imprinted state moves by (1 + kappa_I) V_I |sigma_I|, the other one by (1 - kappa_I) V_I |sigma_I|. Source: off by default; 0.2-0.3 from the branch coercive voltages of [Buragohain2019] Figs. 2a,b
++ imp_va=0
+* ^ [V] field acceleration of the imprint states, rate x cosh(rho V / V_a) (0 = off). Source: off by default; write-time ('fluid') imprint of [Buragohain2019] Fig. 3b

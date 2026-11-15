@@ -513,6 +513,31 @@ def deck_imprint():
                         ".options reltol=2e-5")
 
 
+def deck_imprint_r2():
+    """Imprint round 2: branch asymmetry (E17a) and field acceleration (E17b) with the log-spaced states."""
+    ov = dict(imp_v=0.4, imp_t1=1e-7, imp_t2=1e-2, imp_kw=0.3, imp_va=0.6)
+    t, vv, ends = segments([(0.0, 0.5e-6), (3.0, 1e-6), (0.0, 1e-3), (-0.6, 2e-6), (0.0, 20e-6), (-1.8, 5e-6),
+                            (0.0, 50e-6), (1.8, 5e-6), (0.0, 50e-6)], edge=0.1e-6)
+    inst = Instance("+3 V write, 1 ms at 0 V, -0.6 V read, -1.8 V and +1.8 V 5 us pulses; kappa_I and V_a on",
+                    t, vv, -1.0)
+    p = nm.generic_card(**ov)
+
+    def compare(d, rows, store):
+        tn, qn = d["time"], d["v(q1)"]
+        r = _sim(inst, p=p, rtol=1e-7)
+        qp = np.interp(tn, r["t"], r["qd"]) / UC
+        check(rows, "waveform max |dQ/A| [uC/cm2]", np.max(np.abs(qn - qp)), 0.0, 0.05)
+        for k in (2, 4, 6, 8):
+            check(rows, f"Q/A at end of segment {k} [uC/cm2]", np.interp(ends[k], tn, qn),
+                  np.interp(ends[k], r["t"], r["qd"]) / UC, 0.02)
+        store.update(t_ng=tn, q_ng=qn, t_py=r["t"], q_py=r["qd"] / UC, s_i=r["s_i"])
+
+    return Deck("imprint_r2", "Imprint branch asymmetry and field acceleration (E17a, E17b)", [inst], float(t[-1]),
+                2e-7, compare=compare, overrides=ov,
+                options="* the 50 ns imprint states, accelerated ~70x during the write: tighter step control\n"
+                        ".options reltol=5e-6")
+
+
 def deck_history():
     """All history terms with instance parameters: pristine vs pre-cycled/pre-stored instance, one 10 kHz loop."""
     ov = dict(wk_fp=0.25, wk_vsp=0.4, wk_nw=1e3, fat_d=0.3, fat_tf=1e3, fat_ns=1e6, fat_kf=0.5, fat_ke=0.2, imp_v=0.3)
@@ -635,7 +660,7 @@ def all_decks():
     return [deck_pund(), deck_loop(1e3), deck_loop(1e4), deck_loop(1e5), deck_switching(), deck_minor(),
             deck_small_signal(), deck_slow_accumulation(), deck_reversible(), deck_backswitch(), deck_temperature(),
             deck_leakage(), deck_wakeup(), deck_fatigue(), deck_imprint(), deck_history(), deck_depin(),
-            deck_fatlag()]
+            deck_fatlag(), deck_imprint_r2()]
 
 
 # ------------------------------------------------------------ running

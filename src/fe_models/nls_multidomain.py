@@ -229,6 +229,14 @@ GENERIC: dict[str, Param] = {
                     "off by default; fit knob (leakage-vs-cycling data)"),
     "fat_lm": Param(1.0, "1", "fat_lm", "m_L", "exponent of the fatigue-induced leakage increase (E20)",
                     "illustrative; inactive while fat_lk = 0"),
+    # ---- imprint dynamics, round 2 (E17a, E17b); off by default.  See docs/research/read-imprint-r2.md.
+    "imp_kw": Param(0.0, "1", "imp_kw", "kappa_I",
+                    "branch asymmetry of the imprint: the switching field out of the imprinted state moves by "
+                    "(1 + kappa_I) V_I |sigma_I|, the other one by (1 - kappa_I) V_I |sigma_I|",
+                    "off by default; 0.2-0.3 from the branch coercive voltages of [Buragohain2019] Figs. 2a,b"),
+    "imp_va": Param(0.0, "V", "imp_va", "V_a",
+                    "field acceleration of the imprint states, rate x cosh(rho V / V_a) (0 = off)",
+                    "off by default; write-time ('fluid') imprint of [Buragohain2019] Fig. 3b"),
 }
 
 
@@ -347,7 +355,9 @@ def rates(p, dom: Domains, v, x, temp):
     vf = p["rho"] * v - p["vdep"] * x
     u = vf - p["vimp"] - dom.delta
     tau0 = p["tau0"] * (1.0 + p["tc_tau"] * (temp - p["t0"]))
-    return rate(u, dom.va_p, tau0, p["alpha"]), rate(-u, dom.va_n, tau0, p["alpha"])
+    # "_imp_w" (set only by aged_card, E17a): both switching fields move away from the centre by this amount
+    w = p.get("_imp_w", 0.0)
+    return rate(u - w, dom.va_p, tau0, p["alpha"]), rate(-u - w, dom.va_n, tau0, p["alpha"])
 
 
 def ps_of_t(p, temp):
@@ -685,6 +695,12 @@ def repeat_waveform(p, t, v, n_rep, s0, nd=None, temp=None, carry_h=False):
 # * Imprint (E17): N_I trapped-charge states with log-spaced time constants,
 #   tau_j dsigma_j/dt = x_t - sigma_j; the bias V_I mean(sigma_j) is subtracted
 #   from V_imp, and the reversible branches move with it.
+# * Imprint, round 2 (both optional, docs/research/read-imprint-r2.md):
+#   E17a branch asymmetry: both switching fields (and the branch peaks) also move
+#   outward by w = kappa_I V_I |sigma_I|, so the field that switches out of the
+#   imprinted state moves (1 + kappa_I) times the centre shift, the other (1 - kappa_I);
+#   E17b field acceleration: every imprint rate is multiplied by cosh(rho V / V_a)
+#   (charge injection during write pulses and under bias builds imprint faster).
 # g(a) = (a + a_e)^kappa - a_e^kappa (a_e = 1e-4 keeps dg/da finite at a = 0).
 #
 # Second round (E18-E20, docs/research/cycling-r2.md), also off by default:
@@ -910,6 +926,32 @@ def imprint_taus(p, temp=None):
     return tau * np.exp(p["imp_ea"] / K_B_EV * (1.0 / temp - 1.0 / p["t0"]))
 
 
+I_EPS = 1e-3     #: smoothing of |sigma_I| in the branch asymmetry (E17a): sqrt(s^2 + e^2) - e
+
+
+def imprint_widening(p, s_i):
+    """E17a: amount w = kappa_I V_I (sqrt(sigma_I^2 + e^2) - e) by which both switching fields move outward.
+
+    With the centre shift -V_I sigma_I of E17, the switching field out of the
+    imprinted state moves by (1 + kappa_I) V_I |sigma_I| and the other one by
+    (1 - kappa_I) V_I |sigma_I|; 0 when imp_kw = 0.
+    """
+    kw = p.get("imp_kw", 0.0)
+    if kw == 0.0:
+        return 0.0 * np.asarray(s_i, float)
+    s_i = np.asarray(s_i, float)
+    return kw * p["imp_v"] * (np.sqrt(s_i * s_i + I_EPS * I_EPS) - I_EPS)
+
+
+def imprint_accel(p, v):
+    """E17b: field acceleration cosh(rho V / V_a) of every imprint rate (1 when imp_va = 0; argument capped at 80)."""
+    va = p.get("imp_va", 0.0)
+    v = np.asarray(v, float)
+    if va <= 0.0:
+        return np.ones_like(v)
+    return np.cosh(np.minimum(np.abs(p["rho"] * v) / va, 80.0))
+
+
 def imprint_response(p, t, temp=None):
     """sigma_I(t) after x_t steps from 0 to 1 at t = 0 with sigma_j(0) = 0: mean_j[1 - exp(-t/tau_j)]."""
     tau = imprint_taus(p, temp)
@@ -946,6 +988,8 @@ def aged_card(p, nd=None, temp=None, a_w=0.0, a_f=0.0, s_i=0.0, zq=0.0):
     temp = p["t0"] if temp is None else temp
     f, _, _, uw, D = pinned_fraction(p, a_w, a_f, float(np.mean(zq)))
     pe = dict(p, mul_ea=p["mul_ea"] * (1.0 + p["fat_ke"] * D), vimp=p["vimp"] - p["imp_v"] * float(np.mean(s_i)))
+    if p.get("imp_kw", 0.0) != 0.0 and p["imp_v"] != 0.0:
+        pe["_imp_w"] = float(imprint_widening(p, float(np.mean(s_i))))
     dom = make_domains(pe, nd, temp)
     dom.delta = dom.delta + split_signs(len(dom.w)) * p["wk_vsp"] * uw
     return pe, dom, float(f)
@@ -955,6 +999,9 @@ def term2_aged(p, v, x, y, temp, s_i):
     """Term (2) of the reversible charge, k_C [gbar + x g_d], with the branches moved by the imprint bias."""
     k = 1.0 + p["tc_c"] * (temp - p["t0"])
     pv = dict(p, vi=p["vi"] - p["imp_v"] * s_i / p["rho"])
+    if p.get("imp_kw", 0.0) != 0.0:
+        # E17a: the branch peaks sit at the switching fields, so they move outward with them
+        pv["vs"] = p["vs"] + imprint_widening(p, s_i) / p["rho"]
     up, dn = branches(pv, v)
     gbar, gd = 0.5 * (up + dn), 0.5 * (up - dn)
     frev = p["frev"]
@@ -1009,7 +1056,8 @@ def rhs_aged(p, dom: Domains, z, v, temp, taus, signs, qtaus=None):
     delta = dom.delta + signs * p["wk_vsp"] * uw
     u = p["rho"] * v - p["vdep"] * (xt - sig) - vimp - delta
     tau0 = p["tau0"] * (1.0 + p["tc_tau"] * (temp - p["t0"]))
-    rp, rn = rate(u, dom.va_p * m_e, tau0, p["alpha"]), rate(-u, dom.va_n * m_e, tau0, p["alpha"])
+    w_i = float(imprint_widening(p, s_i)) if imp else 0.0
+    rp, rn = rate(u - w_i, dom.va_p * m_e, tau0, p["alpha"]), rate(-u - w_i, dom.va_n * m_e, tau0, p["alpha"])
     th = p["tau_h"]
     relax = 0.0 if not np.isfinite(th) else 1.0 / (th * (1.0 + ((v - vimp) / V_GATE) ** 4))
     beta = p["beta"]
@@ -1044,7 +1092,7 @@ def rhs_aged(p, dom: Domains, z, v, temp, taus, signs, qtaus=None):
     ds = ds + frel * (ratio - s) / (1.0 - f)
     dpi = fpin * xs - frel * ratio
     dr = (fpin * term2_aged(p, v, xs, y, temp, s_i) - frel * r / max(f, 1e-12)) if (fpin or frel) else 0.0
-    dsj = (xt - sj) / taus if imp else np.zeros_like(sj)
+    dsj = (xt - sj) / taus * float(imprint_accel(p, v)) if imp else np.zeros_like(sj)
     if nq or vl.size:
         return ds, dh, (v - y) / p["tau_r"], (xt - sig) / p["tau_s"], dpi, dr, da_w, da_f, dsj, dzq, dvl
     return ds, dh, (v - y) / p["tau_r"], (xt - sig) / p["tau_s"], dpi, dr, da_w, da_f, dsj
@@ -1176,7 +1224,7 @@ def _one_period(p, nd, temp, dts, vms, s, h, a_w, a_f, sj, pi, taus, zq=None, qt
             df += dfz * float(np.mean(zq2 - zq))
             zq = zq2
         dpi += max(df, 0.0) * 0.5 * (x0 + x1) - max(-df, 0.0) * ratio
-        a = np.exp(-dt / taus)
+        a = np.exp(-dt * float(imprint_accel(p, vv)) / taus)
         sj = sj * a + ((1.0 - f) * 0.5 * (x0 + x1) + pi) * (1.0 - a)
         s = s2
         xs.append(x1)
@@ -1216,6 +1264,7 @@ def cycle_history(p, t, v, n_out, nd=None, temp=None, history=None, s_start=-1.0
     wake, fat, imp = aging_flags(p)
     taus = imprint_taus(p, temp)
     dts, vms, ves = _refine_period(t, v, sub)
+    t_eff = float(np.sum(dts * imprint_accel(p, vms)))   # imprint time per period (E17b); = period when off
     vstart = np.concatenate([[float(np.asarray(v, float)[0])], ves[:-1]])
     da_ft = stress_per_period(p, t, v, temp=temp) if fat else 0.0
     vl_starts = _lag_starts(p, dts, vms) if lag_on(p) else None
@@ -1278,7 +1327,8 @@ def cycle_history(p, t, v, n_out, nd=None, temp=None, history=None, s_start=-1.0
             # how many periods may share these increments
             f1 = float(pinned_fraction(p, a_w + dw, a_f + da_f, zmean(zq_new))[0])
             dfdn = abs(f1 - f)
-            a_sj = np.exp(-(dts.sum()) / taus)
+            lna = -t_eff / taus
+            a_sj = np.exp(lna)
             b_sj = sj_new - a_sj * sj
             m = n_target - n_done
             if dfdn > 0:
@@ -1287,7 +1337,6 @@ def cycle_history(p, t, v, n_out, nd=None, temp=None, history=None, s_start=-1.0
                 # change of the mean imprint state over m periods of the affine map; the fast states
                 # jump to their fixed point at once, so only the slow ones limit m
                 gap = b_sj / (1.0 - a_sj) - sj
-                lna = -(dts.sum()) / taus
 
                 def dsi(mm):
                     return float(np.mean(-np.expm1(mm * lna) * gap))
