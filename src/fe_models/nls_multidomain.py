@@ -480,6 +480,20 @@ def step(p, dom: Domains, s, h, v, dt, temp=None, sigma=0.0):
                         h_i = ha[active] * e + ra[active] * th * (1.0 - e)
                         lam[active] += 0.5 * (b - a) * wi * beta * ra[active] * h_i ** (beta - 1.0)
         h_new = np.where(target != 0, target * ha_new, np.sign(h) * ha_new)
+        # Reversed drive below the reset threshold: h is not reset, so (as in E3b,
+        # where the hazard uses h+ = max(h, 0) and h- = max(-h, 0)) the old progress
+        # first counts down; the new direction has no hazard until h crosses zero.
+        back = (target * h) < 0
+        if back.any():
+            if g == 1.0:
+                hs = h + r * dt
+            elif dt < 1e-3 * tau_h_eff(p, v):
+                hs = h * g + r * dt
+            else:
+                hs = h * g + r * tau_h_eff(p, v) * (1.0 - g)
+            prog = np.maximum(target * hs, 0.0)
+            lam = np.where(back, prog**beta, lam)
+            h_new = np.where(back, hs, h_new)
     s_new = np.where(target != 0, target + (s - target) * np.exp(-lam), s)
     return s_new, h_new
 

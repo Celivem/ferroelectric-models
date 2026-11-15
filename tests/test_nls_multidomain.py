@@ -378,6 +378,27 @@ class TestHistoricalBugsAreCaught(unittest.TestCase):
             bad = loss()
         self.assertGreater(bad / closed, 1.5)
 
+    def test_step_does_not_carry_progress_across_a_sub_threshold_reversal(self):
+        """A reversed drive below the reset threshold must not reuse the old direction's h.
+
+        Write at 1.5 V for 20 us, then hold at -0.05 V (|u| = 0.35 V < u_x = 0.4 V) for 1 us.
+        E3b (simulate) switches nothing; the unfixed closed form switched 7.8 %.
+        """
+        p = card(vimp=0.3, mul_ea=0.4)
+        dom = nm.make_domains(p)
+        n = len(dom.w)
+        s, h = -np.ones(n), np.zeros(n)
+        for _ in range(200):
+            s, h = nm.step(p, dom, s, h, 1.5, 1e-7)
+        x_w = float(dom.w @ s)
+        for _ in range(100):
+            s, h = nm.step(p, dom, s, h, -0.05, 1e-8)
+        vf, br = nm.pwl([0, 20e-6, 20.001e-6, 21.001e-6], [1.5, 1.5, -0.05, -0.05])
+        r = nm.simulate(p, vf, 21.001e-6, s0=-1.0, breaks=br)
+        i_w = np.searchsorted(r["t"], 20e-6)
+        sim = 0.5 * (r["x"][i_w] - r["x"][-1])
+        self.assertLess(abs(0.5 * (x_w - float(dom.w @ s)) - sim), 1e-4)
+
 
 class TestSpiceFilesInSync(unittest.TestCase):
     def test_parameter_card_matches_generic(self):
