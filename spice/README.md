@@ -124,6 +124,7 @@ ngspice_con -b spice/tests/pund.cir      # a single deck; writes pund.dat into t
 
 ```
 N<name> <p> <n> <qm> <model> [s0=<-1..1>] [area=<m^2>] [sg0=<-1..1>]
+         [nw0=<cycles>] [af0=<age>] [si0=<-1..1>] [zq0=<0..1>]
 ```
 
 | Terminal | Meaning |
