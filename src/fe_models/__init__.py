@@ -18,4 +18,4 @@ from . import kinetics, landau, measurement, nls_multidomain, preisach, units
 from .preisach import PreisachModel
 
 __all__ = ["kinetics", "landau", "measurement", "nls_multidomain", "preisach", "units", "PreisachModel"]
-__version__ = "0.1.0"
+__version__ = "0.3.0"

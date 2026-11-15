@@ -2,6 +2,8 @@
 
 # 鐵電切換與遲滯模型
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Release](https://img.shields.io/github/v/release/Celivem/ferroelectric-models)](https://github.com/Celivem/ferroelectric-models/releases) ![Python](https://img.shields.io/badge/python-%E2%89%A53.10-blue.svg)
+
 一套小而有測試的 Python 函式庫，收錄文獻中標準的鐵電切換與遲滯模型，以 HfO₂ 系薄膜電容為設定；另外附一個**給電路模擬用的 Verilog-A 電容模型**，已經用 OpenVAF-Reloaded 編譯、在 ngspice 中執行，並與它的 Python 參考實作逐點比對。
 
 - **Landau–Devonshire** 自由能與 **Landau–Khalatnikov** 動力學
@@ -59,8 +61,12 @@ Landau、Preisach、kinetics、measurement 四個模組的參數都是示意用�
 需要 Python ≥ 3.10，相依套件只有 NumPy、SciPy、Matplotlib。
 
 ```bash
+git clone https://github.com/Celivem/ferroelectric-models.git
+cd ferroelectric-models
 pip install -e .
 ```
+
+不 clone、直接安裝某個發布版本：`pip install "fe-models @ git+https://github.com/Celivem/ferroelectric-models@v0.3.0"`。各版本與變更內容見 [CHANGELOG.md](CHANGELOG.md)（英文）與 [Releases 頁面](https://github.com/Celivem/ferroelectric-models/releases)。
 
 SPICE 部分另外需要 [OpenVAF-Reloaded](https://github.com/arpadbuermen/OpenVAF)（或 OpenVAF）把 Verilog-A 編譯成 OSDI 函式庫，以及支援 OSDI 的 ngspice（≥ 39）；步驟見 [spice/README.md](spice/README.md#quick-start-ngspice)。
 
@@ -277,6 +283,25 @@ The Python package Ferro by JAnderson419 ([PyPI `ferro`](https://pypi.org/projec
 - Alessandri et al., IEEE Electron Device Lett. 39, 1780 (2018)；Alessandri, Pandey, Seabaugh, IEDM 2018；Alessandri et al., IEEE Trans. Electron Devices 66, 3527 (2019)——動態 NLS 模型，以及通用參數卡的切換參數。
 - 多域模型的其他文獻（C–V、漏電、回切、讀取耐久、喚醒、疲勞、imprint）：[spice/README.md](spice/README.md#references)。
 
+## 引用
+
+如果這份程式或 Verilog-A 模型對你的工作有幫助，請引用本 repo。GitHub 頁面右側的 **Cite this repository**（由 [CITATION.cff](CITATION.cff) 產生）提供 APA 與 BibTeX 格式。BibTeX：
+
+```bibtex
+@software{celivem_ferroelectric_models,
+  author  = {Celivem},
+  title   = {ferroelectric-models: ferroelectric switching and hysteresis models with a Verilog-A multi-domain NLS capacitor model},
+  version = {0.3.0},
+  year    = {2026},
+  url     = {https://github.com/Celivem/ferroelectric-models}
+}
+```
+
+也請一併引用你用到的部分所依據的論文：參數卡與 `data/literature/` 的每個檔案都寫明出處，推導文章列出每一項模型所根據的文獻。
+
 ## 授權
 
-以 [MIT License](LICENSE) 釋出。
+- **程式**（Python 套件、Verilog-A 模型、腳本、測試）：[MIT License](LICENSE)。
+- **文件與圖**（`docs/`）：在本 repo 撰寫與產生，同樣以 MIT License 釋出。
+- **文獻數據**（`data/literature/`）：取自已發表論文的數字，是論文公布的擬合公式，或從圖上讀出的近似值。每個檔案的開頭寫明論文、圖號與取得方式。這些數字供比較與驗證使用；使用時請引用原始論文。本 repo 不含那些論文的圖、文字或 PDF。
+- **第三方工具**沒有隨附：NumPy、SciPy、Matplotlib 由 pip 安裝；OpenVAF-Reloaded 與 ngspice 需另外安裝，各自適用原本的授權。

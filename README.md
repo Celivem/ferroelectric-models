@@ -2,6 +2,8 @@
 
 # Ferroelectric Switching Models
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Release](https://img.shields.io/github/v/release/Celivem/ferroelectric-models)](https://github.com/Celivem/ferroelectric-models/releases) ![Python](https://img.shields.io/badge/python-%E2%89%A53.10-blue.svg)
+
 A small, tested Python library of standard ferroelectric switching and hysteresis models, set up for HfO₂-based thin-film capacitors, plus a compact **Verilog-A capacitor model for circuit simulation** that has been compiled with OpenVAF-Reloaded and verified in ngspice against its Python reference.
 
 - **Landau–Devonshire** free energy and **Landau–Khalatnikov** dynamics
@@ -59,8 +61,12 @@ The Landau, Preisach, kinetics and measurement modules use illustrative syntheti
 Python ≥ 3.10; the only dependencies are NumPy, SciPy and Matplotlib.
 
 ```bash
+git clone https://github.com/Celivem/ferroelectric-models.git
+cd ferroelectric-models
 pip install -e .
 ```
+
+To install a released version without cloning, `pip install "fe-models @ git+https://github.com/Celivem/ferroelectric-models@v0.3.0"`. Released versions and their changes are listed in [CHANGELOG.md](CHANGELOG.md) and on the [releases page](https://github.com/Celivem/ferroelectric-models/releases).
 
 The SPICE part additionally needs [OpenVAF-Reloaded](https://github.com/arpadbuermen/OpenVAF) (or OpenVAF) to compile the Verilog-A file and ngspice ≥ 39 with OSDI support to run it; see [spice/README.md](spice/README.md#quick-start-ngspice).
 
@@ -275,6 +281,25 @@ The Python package Ferro by JAnderson419 ([PyPI `ferro`](https://pypi.org/projec
 - Alessandri et al., IEEE Electron Device Lett. 39, 1780 (2018); Alessandri, Pandey, Seabaugh, IEDM 2018; Alessandri et al., IEEE Trans. Electron Devices 66, 3527 (2019) — the dynamic NLS model and the switching parameters of the generic card.
 - Further references of the multi-domain model (C–V, leakage, back-switching, read endurance, wake-up, fatigue, imprint): [spice/README.md](spice/README.md#references).
 
+## Citing
+
+If this code or the Verilog-A model helps your work, please cite the repository; GitHub's **Cite this repository** button (from [CITATION.cff](CITATION.cff)) gives APA and BibTeX. A BibTeX entry:
+
+```bibtex
+@software{celivem_ferroelectric_models,
+  author  = {Celivem},
+  title   = {ferroelectric-models: ferroelectric switching and hysteresis models with a Verilog-A multi-domain NLS capacitor model},
+  version = {0.3.0},
+  year    = {2026},
+  url     = {https://github.com/Celivem/ferroelectric-models}
+}
+```
+
+Please also cite the papers behind what you use: the parameter cards and every file in `data/literature/` name their sources, and the derivation article lists the papers each model term rests on.
+
 ## License
 
-Released under the [MIT License](LICENSE).
+- **Code** (Python package, Verilog-A model, scripts, tests): [MIT License](LICENSE).
+- **Documentation and figures** in `docs/`: written and generated in this repository, released under the same MIT License.
+- **Literature data** in `data/literature/`: numbers taken from published papers, either published fit formulas or values digitized from figures (approximate). Each file names the paper, figure and method in its header. The numbers are provided for comparison and validation; please cite the original papers when you use them. No figures, text or PDFs of those papers are included.
+- **Third-party tools** are not bundled: NumPy, SciPy and Matplotlib are installed by pip; OpenVAF-Reloaded and ngspice are installed separately and keep their own licenses.

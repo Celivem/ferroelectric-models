@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fe-models"
-version = "0.1.0"
+version = "0.3.0"
 description = "Standard ferroelectric switching and hysteresis models (Landau-Khalatnikov, Preisach/FORC, KAI/NLS/Merz, PUND) and a dynamic multi-domain NLS capacitor model with a Verilog-A version for HfO2-type thin films"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -17,6 +17,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Topic :: Scientific/Engineering :: Physics",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Celivem/ferroelectric-models"
+Documentation = "https://github.com/Celivem/ferroelectric-models/blob/main/docs/model-derivation.md"
+Changelog = "https://github.com/Celivem/ferroelectric-models/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Celivem/ferroelectric-models/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below. If you use a parameter card or a literature comparison, please also cite the original papers listed in the files you use."
+type: software
+title: "ferroelectric-models: ferroelectric switching and hysteresis models with a Verilog-A multi-domain NLS capacitor model"
+abstract: >-
+  Python implementations of standard ferroelectric switching and hysteresis
+  models (Landau-Khalatnikov, Preisach/FORC, KAI/NLS/Merz, PUND analysis) and a
+  dynamic multi-domain nucleation-limited-switching capacitor model for
+  HfO2-type thin films, with a Verilog-A version compiled with OpenVAF and
+  verified in ngspice against the Python reference. Optional history terms
+  describe wake-up, fatigue, logarithmic-time imprint and leakage growth.
+authors:
+  - alias: Celivem
+version: 0.3.0
+date-released: 2026-11-15
+license: MIT
+repository-code: "https://github.com/Celivem/ferroelectric-models"
+url: "https://github.com/Celivem/ferroelectric-models"
+keywords:
+  - ferroelectric
+  - hafnium oxide
+  - HZO
+  - hysteresis
+  - Preisach model
+  - nucleation-limited switching
+  - compact model
+  - Verilog-A
+  - ngspice
