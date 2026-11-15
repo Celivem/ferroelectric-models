@@ -1,0 +1,117 @@
+# Source (figure as reproduced in review): M. H. Park, D. H. Lee, K. Yang, J.-Y. Park, G. T. Yu, H. W. Park, M. Materano, T. Mittmann, P. D. Lomenzo, T. Mikolajick, U. Schroeder, C. S. Hwang, "Review of defect chemistry in fluorite-structure ferroelectrics for future electronic devices", J. Mater. Chem. C 8, 10526-10550 (2020). DOI: 10.1039/D0TC01695K. Fig. 5(e), page 10538. Data originally from ref. 154 of the review (Kim, Hyun et al., TDMA vs TEMA precursor HZO) - original paper NOT read here.
+# Panel legend says TDMA (the review caption text says (e) TEMA / (f) TDMA; the in-panel legend and the review text '>1e9 cycles at 2.5 MV/cm for TDMA' both indicate (e) = TDMA; the legend is taken as correct).
+# Device: TiN / Hf0.5Zr0.5O2 / TiN, ALD with TDMA-Hf/Zr precursors (C ~2.2 % per review). Thickness/area not given in the review (see original ref. 154).
+# Cycling: bipolar rectangular double pulses, 100 kHz, amplitude 2.5 or 3.0 MV/cm; Pr read at the cycling amplitude (legend '(@ 2.5 MV/cm)', '(@ 3.0 MV/cm)'). Temperature: room temperature presumably (not stated).
+# Pr measurement: P-E hysteresis (method/frequency for this panel not stated in review).
+# Data structure in figure: one pristine point (N=1), then a straight connecting line to dense markers starting at ~1e5 cycles. Between 1 and 1e5 there are NO data; do not interpolate. The 3.0 MV/cm device fails (hard breakdown, vertical line) at about 1.5e7 cycles; 2.5 MV/cm reaches ~1e9 cycles.
+# Method: pristine points = marker centroid (color segmentation); cycled points = per-pixel-column centroid of the series color, every 3 px (flag 'trace'): this follows markers+connecting line, not individual measurement points.
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: low-resolution raster (~24 px per decade, 5.2 px per uC/cm2): y +/-0.5 uC/cm2 (up to +/-1 where the two series overlap near 1e5-1e7), x +/-0.15 decade (marker half-width) at the ends of each trace.
+# Axis calibration: x fit max residual 0.0267 (log10 units), y fit max residual 0.0579 (units); px/py are pixel coords in the native figure raster; crop offset (690, 0)
+series,cycles_digitized,cycles_nominal,Pr_uC_cm2,px,py,flag
+2.5MVcm_Pr+,0.9807,,12.46,736.0,79.5,pristine_marker
+2.5MVcm_Pr+,9.57e+04,,14,856.0,71.5,trace
+2.5MVcm_Pr+,1.275e+05,,14,859.0,71.5,trace
+2.5MVcm_Pr+,1.7e+05,,13.9,862.0,72.0,trace
+2.5MVcm_Pr+,2.265e+05,,13.81,865.0,72.5,trace
+2.5MVcm_Pr+,3.019e+05,,13.81,868.0,72.5,trace
+2.5MVcm_Pr+,4.023e+05,,13.81,871.0,72.5,trace
+2.5MVcm_Pr+,5.362e+05,,13.9,874.0,72.0,trace
+2.5MVcm_Pr+,7.146e+05,,13.9,877.0,72.0,trace
+2.5MVcm_Pr+,9.523e+05,,13.9,880.0,72.0,trace
+2.5MVcm_Pr+,1.269e+06,,13.9,883.0,72.0,trace
+2.5MVcm_Pr+,1.691e+06,,13.71,886.0,73.0,trace
+2.5MVcm_Pr+,2.254e+06,,13.71,889.0,73.0,trace
+2.5MVcm_Pr+,3.004e+06,,13.71,892.0,73.0,trace
+2.5MVcm_Pr+,4.004e+06,,13.71,895.0,73.0,trace
+2.5MVcm_Pr+,5.336e+06,,13.62,898.0,73.5,trace
+2.5MVcm_Pr+,7.111e+06,,13.62,901.0,73.5,trace
+2.5MVcm_Pr+,9.477e+06,,13.62,904.0,73.5,trace
+2.5MVcm_Pr+,1.263e+07,,13.52,907.0,74.0,trace
+2.5MVcm_Pr+,1.683e+07,,13.33,910.0,75.0,trace
+2.5MVcm_Pr+,2.243e+07,,13.23,913.0,75.5,trace
+2.5MVcm_Pr+,2.99e+07,,13.23,916.0,75.5,trace
+2.5MVcm_Pr+,3.984e+07,,13.04,919.0,76.5,trace
+2.5MVcm_Pr+,5.31e+07,,13.04,922.0,76.5,trace
+2.5MVcm_Pr+,7.076e+07,,12.85,925.0,77.5,trace
+2.5MVcm_Pr+,9.431e+07,,12.85,928.0,77.5,trace
+2.5MVcm_Pr+,1.257e+08,,12.65,931.0,78.5,trace
+2.5MVcm_Pr+,1.675e+08,,12.46,934.0,79.5,trace
+2.5MVcm_Pr+,2.232e+08,,12.37,937.0,80.0,trace
+2.5MVcm_Pr+,2.975e+08,,12.17,940.0,81.0,trace
+2.5MVcm_Pr+,3.965e+08,,11.98,943.0,82.0,trace
+2.5MVcm_Pr+,5.284e+08,,11.69,946.0,83.5,trace
+2.5MVcm_Pr+,7.042e+08,,11.6,949.0,84.0,trace
+2.5MVcm_Pr+,9.385e+08,,11.4,952.0,85.0,trace
+2.5MVcm_Pr+,1.251e+09,,11.4,955.0,85.0,trace
+2.5MVcm_Pr-,0.9807,,-12.9,736.0,211.4,pristine_marker
+2.5MVcm_Pr-,9.57e+04,,-14.65,856.0,220.5,trace
+2.5MVcm_Pr-,1.275e+05,,-14.56,859.0,220.0,trace
+2.5MVcm_Pr-,1.7e+05,,-14.56,862.0,220.0,trace
+2.5MVcm_Pr-,2.265e+05,,-14.56,865.0,220.0,trace
+2.5MVcm_Pr-,3.019e+05,,-14.56,868.0,220.0,trace
+2.5MVcm_Pr-,4.023e+05,,-14.65,871.0,220.5,trace
+2.5MVcm_Pr-,5.362e+05,,-14.56,874.0,220.0,trace
+2.5MVcm_Pr-,7.146e+05,,-14.56,877.0,220.0,trace
+2.5MVcm_Pr-,9.523e+05,,-14.56,880.0,220.0,trace
+2.5MVcm_Pr-,1.269e+06,,-14.56,883.0,220.0,trace
+2.5MVcm_Pr-,1.691e+06,,-14.46,886.0,219.5,trace
+2.5MVcm_Pr-,2.254e+06,,-14.46,889.0,219.5,trace
+2.5MVcm_Pr-,3.004e+06,,-14.37,892.0,219.0,trace
+2.5MVcm_Pr-,4.004e+06,,-14.37,895.0,219.0,trace
+2.5MVcm_Pr-,5.336e+06,,-14.17,898.0,218.0,trace
+2.5MVcm_Pr-,7.111e+06,,-14.17,901.0,218.0,trace
+2.5MVcm_Pr-,9.477e+06,,-14.08,904.0,217.5,trace
+2.5MVcm_Pr-,1.263e+07,,-14.08,907.0,217.5,trace
+2.5MVcm_Pr-,1.683e+07,,-13.98,910.0,217.0,trace
+2.5MVcm_Pr-,2.243e+07,,-13.88,913.0,216.5,trace
+2.5MVcm_Pr-,2.99e+07,,-13.69,916.0,215.5,trace
+2.5MVcm_Pr-,3.984e+07,,-13.6,919.0,215.0,trace
+2.5MVcm_Pr-,5.31e+07,,-13.5,922.0,214.5,trace
+2.5MVcm_Pr-,7.076e+07,,-13.31,925.0,213.5,trace
+2.5MVcm_Pr-,9.431e+07,,-13.21,928.0,213.0,trace
+2.5MVcm_Pr-,1.257e+08,,-13.02,931.0,212.0,trace
+2.5MVcm_Pr-,1.675e+08,,-12.83,934.0,211.0,trace
+2.5MVcm_Pr-,2.232e+08,,-12.73,937.0,210.5,trace
+2.5MVcm_Pr-,2.975e+08,,-12.54,940.0,209.5,trace
+2.5MVcm_Pr-,3.965e+08,,-12.44,943.0,209.0,trace
+2.5MVcm_Pr-,5.284e+08,,-12.35,946.0,208.5,trace
+2.5MVcm_Pr-,7.042e+08,,-12.06,949.0,207.0,trace
+2.5MVcm_Pr-,9.385e+08,,-11.87,952.0,206.0,trace
+2.5MVcm_Pr-,1.251e+09,,-11.77,955.0,205.5,trace
+3.0MVcm_Pr+,0.9621,,14.38,735.8,69.5,pristine_marker
+3.0MVcm_Pr+,9.57e+04,,15.25,856.0,65.0,trace
+3.0MVcm_Pr+,1.275e+05,,15.35,859.0,64.5,trace
+3.0MVcm_Pr+,1.7e+05,,15.35,862.0,64.5,trace
+3.0MVcm_Pr+,2.265e+05,,15.44,865.0,64.0,trace
+3.0MVcm_Pr+,3.019e+05,,15.25,868.0,65.0,trace
+3.0MVcm_Pr+,4.023e+05,,15.15,871.0,65.5,trace
+3.0MVcm_Pr+,5.362e+05,,15.35,874.0,64.5,trace
+3.0MVcm_Pr+,7.146e+05,,15.35,877.0,64.5,trace
+3.0MVcm_Pr+,9.523e+05,,15.25,880.0,65.0,trace
+3.0MVcm_Pr+,1.269e+06,,15.25,883.0,65.0,trace
+3.0MVcm_Pr+,1.691e+06,,15.25,886.0,65.0,trace
+3.0MVcm_Pr+,2.254e+06,,15.35,889.0,64.5,trace
+3.0MVcm_Pr+,3.004e+06,,15.25,892.0,65.0,trace
+3.0MVcm_Pr+,4.004e+06,,15.25,895.0,65.0,trace
+3.0MVcm_Pr+,5.336e+06,,15.25,898.0,65.0,trace
+3.0MVcm_Pr+,7.111e+06,,15.25,901.0,65.0,trace
+3.0MVcm_Pr+,9.477e+06,,15.15,904.0,65.5,trace
+3.0MVcm_Pr-,0.9529,,-15.48,735.7,224.8,pristine_marker
+3.0MVcm_Pr-,9.57e+04,,-16.29,856.0,229.0,trace
+3.0MVcm_Pr-,1.275e+05,,-16.19,859.0,228.5,trace
+3.0MVcm_Pr-,1.7e+05,,-16.19,862.0,228.5,trace
+3.0MVcm_Pr-,2.265e+05,,-16.19,865.0,228.5,trace
+3.0MVcm_Pr-,3.019e+05,,-16.19,868.0,228.5,trace
+3.0MVcm_Pr-,4.023e+05,,-16.19,871.0,228.5,trace
+3.0MVcm_Pr-,5.362e+05,,-16.19,874.0,228.5,trace
+3.0MVcm_Pr-,7.146e+05,,-16,877.0,227.5,trace
+3.0MVcm_Pr-,9.523e+05,,-16.1,880.0,228.0,trace
+3.0MVcm_Pr-,1.269e+06,,-16,883.0,227.5,trace
+3.0MVcm_Pr-,1.691e+06,,-16,886.0,227.5,trace
+3.0MVcm_Pr-,2.254e+06,,-15.9,889.0,227.0,trace
+3.0MVcm_Pr-,3.004e+06,,-15.9,892.0,227.0,trace
+3.0MVcm_Pr-,4.004e+06,,-15.9,895.0,227.0,trace
+3.0MVcm_Pr-,5.336e+06,,-15.81,898.0,226.5,trace
+3.0MVcm_Pr-,7.111e+06,,-15.81,901.0,226.5,trace
+3.0MVcm_Pr-,9.477e+06,,-15.71,904.0,226.0,trace

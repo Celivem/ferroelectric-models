@@ -1,0 +1,32 @@
+# Source: M. Pesic, F. P. G. Fengler, L. Larcher, A. Padovani, T. Schenk, E. D. Grimley, X. Sang, J. M. LeBeau, S. Slesazeck, U. Schroeder, T. Mikolajick, "Physical Mechanisms behind the Field-Cycling Behavior of HfO2-Based Ferroelectric Capacitors", Adv. Funct. Mater. 26, 4601-4612 (2016). DOI: 10.1002/adfm.201600590
+# Figure 1a (p. 4602): Pr+ and Pr- vs number of bipolar cycles (wake-up / stable / fatigue regions marked by the authors).
+# Device: TiN(10 nm) / 10 nm Sr:HfO2 (ALD 300 C) / TiN(12 nm), crystallized 800 C 20 s N2; Ti/Pt dots, area 9500 um2.
+# Cycling: bipolar, 4 V at 10 kHz (= 4 MV/cm nominal for 10 nm), per caption; waveform shape for this figure not stated (the companion Schenk 2014 work used rectangular stress cycles + triangular measurement cycles). Room temperature.
+# Pr measurement: dynamic hysteresis at 10 kHz (Experimental section).
+# The pristine value is plotted at x = 1E-1 on the log axis (convention for 'cycle 0'). Merged markers at ~3-5 cycles were separated by eye from the zoomed raster; points at 1e3 and 1e4 are partly covered by the dashed region boxes.
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: y +/-0.2 uC/cm2 (11 px per uC/cm2), +/-0.4 for flagged points; x nominal decades, x of the 3-5 cycle cluster +/-0.05 decade.
+# Axis calibration: x fit max residual 0.0097 (log10 units), y fit max residual 0.0136 (units); px/py are pixel coords in the native figure raster; crop offset (0, 40)
+series,cycles_digitized,cycles_nominal,Pr_uC_cm2,px,py,flag
+Pr+,0.1011,0.1,8.58,186.3,216.0,pristine_plotted_at_0.1
+Pr+,0.9967,1,13.02,332.5,167.0,
+Pr+,2.982,3,14.52,402.5,150.5,merged_cluster_split_by_eye
+Pr+,3.952,4,14.84,420.5,147.0,merged_cluster_split_by_eye
+Pr+,4.959,5,15.02,435.0,145.0,merged_cluster_split_by_eye
+Pr+,9.953,10,15.56,479.5,139.0,
+Pr+,98.92,100,16.59,626.2,127.7,
+Pr+,969.4,1000,18.01,772.0,112.0,partly_occluded_by_dashed_box
+Pr+,9989,10000,18.1,921.0,111.0,partly_occluded_by_dashed_box
+Pr+,9.897e+04,100000,15.88,1067.5,135.5,
+Pr+,9.821e+05,1e+06,14.05,1214.1,155.7,
+Pr-,0.1014,0.1,-8.472,186.5,404.0,pristine_plotted_at_0.1
+Pr-,0.9951,1,-12.73,332.4,451.0,
+Pr-,2.982,3,-13.96,402.5,464.5,merged_cluster_split_by_eye
+Pr-,3.983,4,-14.23,421.0,467.5,merged_cluster_split_by_eye
+Pr-,4.959,5,-14.5,435.0,470.5,merged_cluster_split_by_eye
+Pr-,9.953,10,-15.37,479.5,480.0,
+Pr-,98.61,100,-16.41,626.0,491.5,
+Pr-,984.7,1000,-17.27,773.0,501.0,partly_occluded_by_dashed_box
+Pr-,1.015e+04,10000,-17.36,922.0,502.0,partly_occluded_by_dashed_box
+Pr-,9.851e+04,100000,-15.8,1067.2,484.8,
+Pr-,9.729e+05,1e+06,-13.94,1213.5,464.3,

@@ -95,6 +95,11 @@ class Instance:
     v: np.ndarray
     s0: float = -1.0
     pre: bool = False  # starts with a conditioning pulse (small-signal deck)
+    history: dict = field(default_factory=dict)  # instance parameters nw0, af0, si0 (cycling/storage history)
+
+    def nm_history(self):
+        h = self.history
+        return nm.History(nw=h.get("nw0", 0.0), af=h.get("af0", 0.0), si=h.get("si0", 0.0))
 
 
 @dataclass
@@ -130,7 +135,8 @@ class Deck:
         vecs = []
         for k, inst in enumerate(self.instances, 1):
             lines.append(f"* {inst.name}")
-            lines.append(f"N{k} p{k} 0 q{k} {model} s0={inst.s0:g} area={AREA:g}")
+            hist = "".join(f" {a}={b:g}" for a, b in inst.history.items())
+            lines.append(f"N{k} p{k} 0 q{k} {model} s0={inst.s0:g} area={AREA:g}{hist}")
             lines.append(f"V{k} p{k} 0 {pwl_text(inst.t, inst.v)}")
             vecs += [f"v(p{k})", f"v(q{k})", f"i(v{k})"]
         lines += [".control", "pre_osdi ../build/fecap_nls.osdi", "set wr_singlescale", "set wr_vecnames",
@@ -152,10 +158,10 @@ def read_dat(path: Path) -> dict:
 
 
 # ------------------------------------------------------------ the decks
-def _sim(inst: Instance, t_eval=None, rtol=1e-8, p=None, temp=None):
+def _sim(inst: Instance, t_eval=None, rtol=1e-8, p=None, temp=None, max_step=np.inf):
     vf, br = nm.pwl(inst.t, inst.v)
     return nm.simulate(p or P, vf, float(inst.t[-1]), s0=inst.s0, breaks=br, rtol=rtol, atol=1e-10, t_eval=t_eval,
-                       temp=temp)
+                       temp=temp, history=inst.nm_history(), max_step=max_step)
 
 
 def check(rows, quantity, ng, py, tol, rel=False):
@@ -428,6 +434,109 @@ def deck_temperature():
                 overrides=ov, temp=85.0)
 
 
+# ------------------------------------------------ cycling and storage history (E13-E17)
+def _cycles(n, amp=3.0, quarter=2.5e-6):
+    t, v = triangle([amp, -amp] * n + [0.0], quarter)
+    return t, v, 4 * quarter
+
+
+def _per_cycle_charge(tn, qn, period, n):
+    """Charge swing max(Q) - min(Q) within each period [uC/cm2]."""
+    return np.array([np.ptp(qn[(tn >= k * period) & (tn <= (k + 1) * period)]) for k in range(n)])
+
+
+def _history_compare(inst, p, rows, store, d, n, period, temp=None, tol=0.05):
+    tn, qn = d["time"], d["v(q1)"]
+    r = _sim(inst, p=p, rtol=1e-7, temp=temp, max_step=period / 400)
+    qp = np.interp(tn, r["t"], r["qd"]) / UC
+    check(rows, "waveform max |dQ/A| [uC/cm2]", np.max(np.abs(qn - qp)), 0.0, tol)
+    cn, cp = _per_cycle_charge(tn, qn, period, n), _per_cycle_charge(tn, qp, period, n)
+    check(rows, "max |per-cycle charge swing ngspice - python| [uC/cm2]", np.max(np.abs(cn - cp)), 0.0, tol)
+    check(rows, "charge swing, last cycle [uC/cm2]", cn[-1], cp[-1], tol)
+    check(rows, "final Q/A [uC/cm2]", qn[-1], r["qd"][-1] / UC, tol)
+    store.update(t_ng=tn, q_ng=qn, t_py=r["t"], q_py=r["qd"] / UC, v_py=r["v"], cyc_ng=cn, cyc_py=cp,
+                 W=r["W"], D=r["D"], s_i=r["s_i"], f=r["f"])
+
+
+def deck_wakeup():
+    """Wake-up: pristine pinned fraction and split internal bias released by switching (8 cycles, 100 kHz)."""
+    ov = dict(wk_fp=0.3, wk_vsp=0.5, wk_nw=3.0, wk_kw=0.8)
+    n = 8
+    t, vv, period = _cycles(n)
+    inst = Instance("+-3 V triangle, 100 kHz, 8 cycles from the pristine state", t, vv, -1.0)
+    p = nm.generic_card(**ov)
+
+    def compare(d, rows, store):
+        _history_compare(inst, p, rows, store, d, n, period)
+
+    return Deck("wakeup", "Wake-up (pinned fraction and split bias released by cycling)", [inst], float(t[-1]), 5e-9,
+                compare=compare, overrides=ov)
+
+
+def deck_fatigue():
+    """Fatigue (both drivers) with wake-up, thermally activated, at 85 C (8 cycles, 100 kHz)."""
+    ov = dict(fat_d=0.4, fat_tf=4e-4, fat_ns=6.0, fat_nf=4.0, fat_kf=0.6, fat_ke=0.3, fat_ea=0.1, wk_ea=0.5,
+              wk_fp=0.2, wk_nw=4.0)
+    n = 8
+    t, vv, period = _cycles(n)
+    inst = Instance("+-3 V triangle, 100 kHz, 8 cycles from the unstressed state, 85 C", t, vv, -1.0)
+    p = nm.generic_card(**ov)
+
+    def compare(d, rows, store):
+        _history_compare(inst, p, rows, store, d, n, period, temp=358.15)
+
+    return Deck("fatigue", "Fatigue (field-time and switching drivers) with wake-up at 85 C", [inst], float(t[-1]),
+                5e-9, compare=compare, overrides=ov, temp=85.0)
+
+
+def deck_imprint():
+    """Imprint: write +, store 0 V for 3 ms, partial switching pulses; log-spaced trapping states at 85 C."""
+    ov = dict(imp_v=0.4, imp_t1=1e-7, imp_t2=1e-2, imp_ea=0.1)
+    t, vv, ends = segments([(0.0, 0.5e-6), (3.0, 2e-6), (0.0, 3e-3), (-1.8, 5e-6), (0.0, 50e-6), (1.8, 5e-6),
+                            (0.0, 50e-6)], edge=0.1e-6)
+    inst = Instance("+3 V write, 3 ms at 0 V, -1.8 V and +1.8 V 5 us pulses; imprint states on, 85 C", t, vv, -1.0)
+    p = nm.generic_card(**ov)
+
+    def compare(d, rows, store):
+        tn, qn = d["time"], d["v(q1)"]
+        r = _sim(inst, p=p, rtol=1e-7, temp=358.15)
+        qp = np.interp(tn, r["t"], r["qd"]) / UC
+        check(rows, "waveform max |dQ/A| [uC/cm2]", np.max(np.abs(qn - qp)), 0.0, 0.05)
+        for k in (2, 4, 6):
+            check(rows, f"Q/A at end of segment {k} [uC/cm2]", np.interp(ends[k], tn, qn),
+                  np.interp(ends[k], r["t"], r["qd"]) / UC, 0.02)
+        store.update(t_ng=tn, q_ng=qn, t_py=r["t"], q_py=r["qd"] / UC, s_i=r["s_i"])
+
+    return Deck("imprint", "Imprint (log-spaced trapping states) at 85 C", [inst], float(t[-1]), 1e-6,
+                compare=compare, overrides=ov, temp=85.0,
+                options="* the 50 ns imprint states follow the switching: tighter step control\n"
+                        ".options reltol=2e-5")
+
+
+def deck_history():
+    """All history terms with instance parameters: pristine vs pre-cycled/pre-stored instance, one 10 kHz loop."""
+    ov = dict(wk_fp=0.25, wk_vsp=0.4, wk_nw=1e3, fat_d=0.3, fat_tf=1e3, fat_ns=1e6, fat_kf=0.5, fat_ke=0.2, imp_v=0.3)
+    t, vv = triangle([3.0, -3.0, 3.0, 0.0], 25e-6)
+    insts = [Instance("pristine, 1.5 cycles at 10 kHz", t, vv, -1.0),
+             Instance("nw0 = 1e5, af0 = 0.3, si0 = -0.5, 1.5 cycles at 10 kHz", t, vv, -1.0,
+                      history=dict(nw0=1e5, af0=0.3, si0=-0.5))]
+    p = nm.generic_card(**ov)
+
+    def compare(d, rows, store):
+        tn = d["time"]
+        for k, inst in enumerate(insts, 1):
+            qn = d[f"v(q{k})"]
+            r = _sim(inst, p=p, rtol=1e-7, max_step=1e-7)
+            qp = np.interp(tn, r["t"], r["qd"]) / UC
+            lab = "pre-aged" if inst.history else "pristine"
+            check(rows, f"waveform max |dQ/A|, {lab} [uC/cm2]", np.max(np.abs(qn - qp)), 0.0, 0.05)
+            check(rows, f"final Q/A, {lab} [uC/cm2]", qn[-1], r["qd"][-1] / UC, 0.02)
+            store[lab] = dict(t_ng=tn, q_ng=qn, t_py=r["t"], q_py=r["qd"] / UC, v_py=r["v"])
+
+    return Deck("history", "History instance parameters nw0, af0, si0", insts, float(t[-1]), 2e-8, compare=compare,
+                overrides=ov)
+
+
 LEAK_V = np.round(np.arange(-3.0, 3.0001, 0.05), 4)
 
 
@@ -465,7 +574,7 @@ def deck_leakage():
 def all_decks():
     return [deck_pund(), deck_loop(1e3), deck_loop(1e4), deck_loop(1e5), deck_switching(), deck_minor(),
             deck_small_signal(), deck_slow_accumulation(), deck_reversible(), deck_backswitch(), deck_temperature(),
-            deck_leakage()]
+            deck_leakage(), deck_wakeup(), deck_fatigue(), deck_imprint(), deck_history()]
 
 
 # ------------------------------------------------------------ running

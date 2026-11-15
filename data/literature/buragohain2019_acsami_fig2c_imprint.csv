@@ -1,0 +1,37 @@
+# Buragohain P., Erickson A., Kariuki P., Mittmann T., Richter C., Lomenzo P.D., Lu H., Schenk T.,
+#   Mikolajick T., Schroeder U., Gruverman A., "Fluid Imprint and Inertial Switching in Ferroelectric
+#   La:HfO2 Capacitors", ACS Appl. Mater. Interfaces 11(38), 35115-35121 (2019). DOI 10.1021/acsami.9b11146
+#   Read from the accepted-manuscript postprint, page 4 (printed p.3), Fig. 2c.
+# Device: IrOx(25 nm)/La:HfO2 (20 nm, ~10 mol% La)/IrOx, 600 C O2 anneal 10 min; Fig. 2 measured on
+#   90 um diameter capacitors (caption). Bias on top electrode, bottom grounded.
+# Preconditioning: wake-up 1e5 cycles +-7 V square, 10 kHz; before EACH measurement 100 cycles (+-7 V, 50 us)
+#   to erase previous imprint. Then set pulse +-6 V, 5 ms (text: 4-6 V, 5 ms ensures full poling).
+# Storage: room temperature, no bias, delay t_d after set pulse (x axis). All measurements at room temperature.
+# Vc measurement: one triangular waveform of 100 us duration (amplitude 7 V per Fig.3 caption) after delay t_d;
+#   switching current integrated to P-V; Vshift = (Vc+ + Vc-)/2.
+# Sign: negative set pulse (Pup) -> positive Vshift (loop shifts right); positive set pulse (Pdown) -> negative.
+# Authors' fit: Vshift = V0 ln(1 + t/tau0) (blue curves); V0, tau0 values NOT given in the paper.
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: time +-0.03 decade (marker centre +-1 px of 27.45 px/decade);
+#   voltage +-0.02 V (marker centre +-1.5 px at 68.3 px/V); points near 0 V partly hidden by the zero line (+-0.03 V).
+#   Nominal delays look like 10 us, 100 us, 1 ms, 100 ms, 10 s, 1 min, 10 min, 1 h, 24 h (reader's interpretation).
+# Columns: set_pulse, t_delay_s, Vshift_V, px_x, px_y (page-300dpi pixel coords of marker centre)
+set_pulse,t_delay_s,Vshift_V,px_x,px_y
+-6V_5ms,1e-05,0.110,442.5,795.0
+-6V_5ms,0.0001004,0.095,470.0,796.0
+-6V_5ms,0.001008,0.110,497.5,795.0
+-6V_5ms,0.1017,0.139,552.5,793.0
+-6V_5ms,9.834,0.549,607.0,765.0
+-6V_5ms,62.25,0.798,629.0,748.0
+-6V_5ms,625.2,0.995,656.5,734.5
+-6V_5ms,3639,1.398,677.5,707.0
+-6V_5ms,8.818e+04,1.803,715.5,679.3
++6V_5ms,9.589e-06,-0.007,442.0,803.0
++6V_5ms,9.63e-05,-0.059,469.5,806.5
++6V_5ms,0.001008,-0.066,497.5,807.0
++6V_5ms,0.1017,-0.212,552.5,817.0
++6V_5ms,10.25,-0.607,607.5,844.0
++6V_5ms,59.7,-0.805,628.5,857.5
++6V_5ms,625.2,-1.024,656.5,872.5
++6V_5ms,3639,-1.302,677.5,891.5
++6V_5ms,8.818e+04,-1.807,715.5,926.0
