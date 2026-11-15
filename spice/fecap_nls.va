@@ -22,12 +22,16 @@
 // pinned polarization pi, the frozen reversible charge r of the pinned pool
 // (C/m^2), the wake-up age a_w, the fatigue age a_F and the imprint states
 // sigma_j.  A history term that is off (the default) keeps its
-// nodes at exactly 0, so the default card behaves as without them.  Their equations are written as I(node) <+ FE_TC*(ddt(X) - f(X)),
+// nodes at exactly 0, so the default card behaves as without them.  The second
+// round (E18-E20) adds FE_NQ + 1 nodes: the reversible depinning states z_j
+// and the lagged voltage V_L of the field-time fatigue driver, both kept at 0
+// while off.  Their equations are written as I(node) <+ FE_TC*(ddt(X) - f(X)),
 // i.e. dX/dt = f(X); FE_TC only scales the "current" of these nodes.
 //
 // Compile-time options
 //   FE_ND : number of domain classes (default 16), e.g. openvaf-r -D FE_ND=64
 //   FE_NI : number of imprint states (default 12)
+//   FE_NQ : number of reversible depinning states (default 8)
 //
 // Defaults are the generic, literature-based card of spice/params/generic.inc.
 // They are not fitted to any particular device.
@@ -50,6 +54,9 @@
 `ifndef FE_NI
 `define FE_NI 12
 `endif
+`ifndef FE_NQ
+`define FE_NQ 8
+`endif
 // scale of the state-node "currents" (A per unit of dX/dt); numerical only
 `define FE_TC 1.0e-6
 // physical constants
@@ -63,6 +70,8 @@ electrical [1:`FE_ND] sn, hn;
 electrical yn, gn;
 electrical pn, prn, awn, afn;
 electrical [1:`FE_NI] imn;
+electrical [1:`FE_NQ] dqn;
+electrical fln;
 
 // ---------------------------------------------------------------- geometry
 (*type="instance"*) parameter real area = 1.0e-10 from (0:inf);   // capacitor area [m^2]
@@ -73,6 +82,7 @@ parameter real t0 = 298.15 from (0:inf);                           // reference 
 (*type="instance"*) parameter real nw0 = 0.0 from [0:inf);         // prior equivalent full switching cycles (wake-up history) [1]
 (*type="instance"*) parameter real af0 = 0.0 from [0:inf);         // prior fatigue age a_F (dimensionless) [1]
 (*type="instance"*) parameter real si0 = 0.0 from [-1:1];          // initial value of every imprint state sigma_j [1]
+(*type="instance"*) parameter real zq0 = 0.0 from [0:1];           // initial value of every depinning state z_j (E18) [1]
 
 // ------------------------------------------------- polarization, switching
 parameter real ps = 0.229 from [0:inf);        // saturation polarization Ps [C/m^2]
@@ -151,6 +161,17 @@ parameter real y_max = 9.0 from (0:inf);       // depth of the logit quantile gr
 parameter real grid_a = 1.5 from (0:inf);      // sinh stretching of the quantile grid [1]
 parameter real bnd = 0.1 from (0:inf);         // max state change per time step used by $bound_step [1]
 
+// ------------------------- cycling, second round (E18-E20; all off by default)
+parameter real wk_fq = 0.0 from [0:1);         // fraction pinned by mobile defects, depinned under field (E18) [1]
+parameter real wk_rho = 0.0 from [0:inf);      // re-pinning at rest: rate / depinning rate at 1 MV/cm [1]
+parameter real wk_tr = 0.0 from [0:inf);       // re-pinning per full switching cycle, in s of depinning at 1 MV/cm [s]
+parameter real wk_q1 = 1.0e-2 from (0:inf);    // shortest depinning time constant at 1 MV/cm and t0 [s]
+parameter real wk_q2 = 1.0e2 from (0:inf);     // longest depinning time constant at 1 MV/cm and t0 [s]
+parameter real wk_nq = 2.0 from [0:inf);       // field exponent of the depinning drive [1]
+parameter real fat_tl = 0.0 from [0:inf);      // build-up time t_L of the field-time stress, E_s^2 = max(E E_L, 0) (E19; 0 = none) [s]
+parameter real fat_lk = 0.0 from [0:inf);      // leakage increase per unit fatigue age, J (1 + k_L a_F^m_L) (E20) [1]
+parameter real fat_lm = 1.0 from (0:inf);      // exponent of the fatigue-induced leakage increase [1]
+
 genvar i;
 real kst, ux, v, tk, dtk, vth, vth0, te, tau, ptc, kc, zmin, relax, zv, x, sg, yv, rm;
 real yl, yh, ql, qh, qm_k, vp, vn, dl, phi, u, rp, rn, s, h, hu, hd, cu, cd, ru, rd, ds, dh;
@@ -158,6 +179,7 @@ real gp, gm_, rev;
 real enw, enf, eni, aw, af, piv, gw, dgw, uw, gf, dgf, ef, dmg, ddm, fw, fpn, dfaw, dfaf, sI, vimpe, me, xt;
 real act, daw, daf, efl, fdot, fpin, frel, ratio, sgn, tauj, ar_i, vie, t2, fff, rtf, rns;
 real gu, gd, guy, gdy, gb, gmm, qt;
+real enq, enl, zb, gq, dfz, phq, dzq, dzb, tq, arq, vlf, efll, fffl, lkf;
 real es, eroot, ar, jl, spf, phit, js, phib, jt, et;
 
 analog begin
@@ -186,7 +208,7 @@ analog begin
     // amplitude parameter; when off, its nodes stay at exactly 0.
     enw = 0.0; enf = 0.0; eni = 0.0;
     if (wk_fp > 0.0 || wk_vsp != 0.0) enw = 1.0;
-    if (fat_d > 0.0) enf = 1.0;
+    if (fat_d > 0.0 || fat_lk > 0.0) enf = 1.0;
     if (imp_v != 0.0) eni = 1.0;
     aw = V(awn);
     af = V(afn);
@@ -201,9 +223,17 @@ analog begin
     dmg = fat_d * (1.0 - ef);                    // fatigue damage D (E15)
     ddm = fat_d * ef * dgf;
     fw = wk_fp * uw;
-    fpn = 1.0 - (1.0 - fw) * (1.0 - dmg);        // pinned fraction f (E16)
-    dfaw = -(1.0 - dmg) * wk_fp * uw * dgw;
-    dfaf = (1.0 - fw) * ddm;
+    // (E18) reversible depinning pool: pinned part f_q (1 - Z), Z = mean z_j
+    enq = 0.0;
+    if (wk_fq > 0.0) enq = 1.0;
+    zb = 0.0;
+    for (i = 1; i <= `FE_NQ; i = i + 1) zb = zb + V(dqn[i]);
+    zb = enq * zb / `FE_NQ;
+    gq = 1.0 - wk_fq * (1.0 - zb);
+    fpn = 1.0 - (1.0 - fw) * gq * (1.0 - dmg);   // pinned fraction f (E16, E18)
+    dfaw = -gq * (1.0 - dmg) * wk_fp * uw * dgw;
+    dfaf = gq * (1.0 - fw) * ddm;
+    dfz = -wk_fq * (1.0 - fw) * (1.0 - dmg);
     sI = 0.0;
     for (i = 1; i <= `FE_NI; i = i + 1) sI = sI + V(imn[i]);
     sI = eni * sI / `FE_NI;
@@ -311,8 +341,32 @@ analog begin
     if (fat_tf > 0.0) rtf = 1.0 / fat_tf;
     rns = 0.0;
     if (fat_ns > 0.0) rns = act / (4.0 * fat_ns);
-    daf = enf * fff * (rtf + rns) * exp(-fat_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
+    // (E19) optional build-up of the field-time stress: E_s^2 = max(E E_L, 0) + E_fl^2, E_L low-passed (t_L)
+    enl = 0.0;
+    if (enf > 0.5 && fat_tl > 0.0 && fat_tf > 0.0) enl = 1.0;
+    vlf = V(fln);
+    if (enl > 0.5) begin
+        efll = sqrt(max(rho * rho * v * vlf / (tfe * tfe), 0.0) + 1.0e6);
+        fffl = pow(efll / 1.0e8, fat_nf);
+        daf = enf * (fffl * rtf + fff * rns) * exp(-fat_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
+        rm = max(rm, abs(v - vlf) / fat_tl);
+    end else
+        daf = enf * fff * (rtf + rns) * exp(-fat_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
+    I(fln) <+ `FE_TC * (ddt(V(fln)) + kst * 1.0e3 * (V(fln) - enl * v) - (1.0 - kst) * enl * (v - vlf) / max(fat_tl, 1.0e-30));
     fdot = dfaw * daw + dfaf * daf;
+    // (E18) depinning states: tau_j dz_j/dt = A_w(T) [phi(V) (1 - z_j) - (rho_q + t_r act/4) z_j],
+    // phi = (E_s/1 MV/cm)^n_q, act = sum_k w_k |ds_k/dt|
+    phq = pow(efl / 1.0e8, wk_nq) - pow(1.0e-5, wk_nq);   // exactly 0 at 0 V
+    arq = exp(-wk_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
+    dzb = 0.0;
+    for (i = 1; i <= `FE_NQ; i = i + 1) begin
+        tq = exp(ln(wk_q1) + (i - 0.5) * (ln(wk_q2) - ln(wk_q1)) / `FE_NQ) / arq;
+        dzq = enq * (phq * (1.0 - V(dqn[i])) - (wk_rho + wk_tr * act / 4.0) * V(dqn[i])) / tq;
+        dzb = dzb + dzq / `FE_NQ;
+        rm = max(rm, abs(dzq));
+        I(dqn[i]) <+ `FE_TC * (ddt(V(dqn[i])) + kst * 1.0e3 * (V(dqn[i]) - enq * zq0) - (1.0 - kst) * dzq);
+    end
+    fdot = fdot + enq * dfz * dzb;
     fpin = max(fdot, 0.0);
     frel = max(-fdot, 0.0);
     ratio = min(max(piv / max(fpn, 1.0e-12), -1.0), 1.0);
@@ -371,6 +425,11 @@ analog begin
     jl = jl + tanh(v / vth) * (spf * es * exp(phit * ar) * exp(min(2.0 * `FE_BS / sqrt(eps_op) * eroot / vth, 80.0))
         + js * (tk / t0) * (tk / t0) * exp(phib * ar) * (exp(min(`FE_BS / sqrt(eps_op) * eroot / vth, 80.0)) - 1.0)
         + jt * exp(-et / es));
+    // (E20) leakage increase with the fatigue age (generated defects)
+    if (fat_lk > 0.0) begin
+        lkf = 1.0 + fat_lk * pow(max(af, 1.0e-30), fat_lm);
+        jl = jl * lkf;
+    end
 
     // (E8) terminal current
     I(p, n) <+ area * (ddt(qt) + jl);

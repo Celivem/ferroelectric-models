@@ -1,0 +1,25 @@
+# Source: M. K. Lenox, S. T. Jaszewski, S. S. Fields, N. Shukla, J. F. Ihlefeld, "Impact of Electric Field Pulse Duration on Ferroelectric Hafnium Zirconium Oxide Thin Film Capacitor Endurance", phys. status solidi (a) (2023), DOI: 10.1002/pssa.202300566. Read: accepted-manuscript version, full text.
+# Values STATED IN THE TEXT (Sec. 2.3 and the Fig. 6 discussion), not digitized. Same device and cycling as lenox2023_pssa_fig5a_pulse_width.csv: W/10 nm HZO/W, +/-2 MV/cm bipolar pulses, 10 kHz, room temperature; leakage read in J(E) at 2.5 MV/cm.
+# quantity = leakage_onset: cycle count at which the leakage at 2.5 MV/cm first exceeded +50 % of the pristine value (the measurement checkpoints are decade or linear intervals, so the onset lies between the previous checkpoint and this one).
+# quantity = leakage_increase: relative increase of the leakage at 2.5 MV/cm at the given cycle count (percent).
+# quantity = failure: dielectric breakdown (the 2 us device failed between the P(E) and J(E) measurements at 2e8). Note: the ABSTRACT says "from 20 to 2 us ... from 3e6 to 2e8 cycles", while Sec. 2.3 gives failure at 1e7 for 20 us (Fig. 4e) and 3e6 for the ~50 us square wave (Fig. 4h); the rows below follow Sec. 2.3.
+# quantity = apparent_pr_increase_PE: increase of the apparent Pr from P(E) loops at 1e6 cycles (leakage included; percent).
+# Type: values stated in the text (exact as printed; the underlying measurement has the checkpoint resolution noted above).
+pulse_width_us,edc_pct,quantity,cycles,value_pct
+2,4,leakage_onset,1e8,50
+5,10,leakage_onset,1e7,50
+10,20,leakage_onset,3e6,50
+20,40,leakage_onset,2e6,50
+50,100,leakage_onset,1e6,50
+2,4,leakage_increase,1e8,51
+20,40,leakage_increase,1e7,240
+50,100,leakage_increase,1e6,400
+50,100,leakage_increase,3e6,2500
+2,4,failure,2e8,
+20,40,failure,1e7,
+50,100,failure,3e6,
+2,4,apparent_pr_increase_PE,1e6,10
+5,10,apparent_pr_increase_PE,1e6,20
+10,20,apparent_pr_increase_PE,1e6,40
+20,40,apparent_pr_increase_PE,1e6,54
+50,100,apparent_pr_increase_PE,1e6,300

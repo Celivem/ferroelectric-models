@@ -409,7 +409,7 @@ class TestSpiceFilesInSync(unittest.TestCase):
         va = (ROOT / "spice" / "fecap_nls.va").read_text(encoding="utf-8")
         found = dict(re.findall(r"parameter real (\w+)\s*=\s*([-+0-9.eE]+)", va))
         for name, prm in nm.GENERIC.items():
-            if prm.va_name in ("FE_ND", "FE_NI"):
+            if prm.va_name in ("FE_ND", "FE_NI", "FE_NQ"):
                 self.assertIn(f"`define {prm.va_name} {prm.value}", va)
                 continue
             self.assertIn(prm.va_name, found, name)

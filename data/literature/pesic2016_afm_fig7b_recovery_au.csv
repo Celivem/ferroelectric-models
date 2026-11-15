@@ -1,0 +1,52 @@
+# Source: M. Pesic et al., "Physical Mechanisms behind the Field-Cycling Behavior of HfO2-Based Ferroelectric Capacitors", Adv. Funct. Mater. 26, 4601-4612 (2016). DOI: 10.1002/adfm.201600590
+# Figure 7b (page 10): 2Pr vs cycles at 375 K for the first endurance run (pristine device, 1e9 cycles) and for second runs on other, identically pre-cycled devices started 1 s, 1 min and 30 min after their first run.
+# Device: TiN / 10 nm Sr:HfO2 / TiN (as in the paper); cycling and read-out conditions as in the paper's Fig. 7 (not restated in the caption); 375 K.
+# The y axis of the figure has ticks but NO numbers (2Pr in a.u.). Values are therefore given in units of the y-tick spacing, measured from the blue dotted horizontal line (drawn by the authors at the level of the first run's last point): y_ticks = (py_dotted - py) / tick spacing. Only differences and ratios of these numbers are meaningful; the zero of 2Pr is unknown.
+# Different devices are used for the first run and for each waiting time (text), so device-to-device spread enters the comparison (the 1 s curve starts 0.4 tick BELOW the end of the first run).
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: +/-0.05 tick (marker centroid by colour segmentation, line pixels included); x nominal (marker columns at decades, 2 cycles, and 2e8/4e8 for the first run).
+# Axis calibration: y ticks at py = 108, 213, 318(dotted line), 424, 529, 634, 740, 845, 949 -> 105.2 px per tick; x 170.6 px per decade from px = 27 (1e0); px/py are pixel coords in the crop (100, 1150) of the native page raster.
+series,cycles_nominal,y_ticks,px,py,flag
+1st_375K_pristine,1,1.164,27.0,196.0,
+1st_375K_pristine,2,1.911,79.0,117.5,
+1st_375K_pristine,10,2.163,198.0,91.0,
+1st_375K_pristine,100,2.305,368.6,76.0,
+1st_375K_pristine,1000,2.391,539.6,67.0,
+1st_375K_pristine,10000,2.467,710.0,59.0,
+1st_375K_pristine,100000,2.471,881.0,58.5,
+1st_375K_pristine,1e+06,2.391,1051.7,67.0,
+1st_375K_pristine,1e+07,2.001,1222.4,108.0,
+1st_375K_pristine,1e+08,1.231,1393.0,189.0,
+1st_375K_pristine,2e+08,0.933,1444.4,220.4,
+1st_375K_pristine,4e+08,0.547,1496.0,261.0,
+1st_375K_pristine,1e+09,0.115,1548.2,306.4,
+2nd_after_1s,1,-0.437,27.1,364.5,
+2nd_after_1s,2,-0.394,78.7,359.9,
+2nd_after_1s,10,-0.382,197.8,358.7,
+2nd_after_1s,100,-0.169,368.7,336.3,
+2nd_after_1s,1000,-0.149,539.7,334.2,
+2nd_after_1s,10000,-0.218,709.9,341.4,
+2nd_after_1s,100000,-0.551,880.7,376.5,
+2nd_after_1s,1e+06,-1.396,1051.3,465.4,
+2nd_after_1s,1e+07,-2.849,1222.3,618.2,
+2nd_after_1s,1e+08,-5.997,1392.3,949.4,
+2nd_after_1min,1,-0.189,28.0,338.4,
+2nd_after_1min,2,-0.157,79.3,335.0,
+2nd_after_1min,10,-0.099,197.8,328.9,
+2nd_after_1min,100,0.155,369.3,302.2,
+2nd_after_1min,1000,0.161,539.9,301.6,
+2nd_after_1min,10000,0.110,709.2,306.9,
+2nd_after_1min,100000,-0.209,880.6,340.5,
+2nd_after_1min,1e+06,-0.898,1050.3,413.0,
+2nd_after_1min,1e+07,-2.012,1222.0,530.2,
+2nd_after_1min,1e+08,-4.534,1392.6,795.5,
+2nd_after_30min,1,0.506,26.9,265.3,
+2nd_after_30min,2,0.604,78.6,255.0,
+2nd_after_30min,10,0.702,197.7,244.6,
+2nd_after_30min,100,0.779,368.5,236.6,
+2nd_after_30min,1000,0.803,539.4,234.0,
+2nd_after_30min,10000,0.706,709.9,244.2,
+2nd_after_30min,100000,0.502,880.8,265.7,
+2nd_after_30min,1e+06,-0.006,1051.4,319.1,
+2nd_after_30min,1e+07,-1.000,1222.3,423.7,
+2nd_after_30min,1e+08,-2.994,1392.2,633.5,

@@ -1,0 +1,20 @@
+# Source: M. K. Lenox et al., phys. status solidi (a) (2023), DOI: 10.1002/pssa.202300566 (accepted manuscript, NSF PAR purl/10472005, full text read).
+# Figure 5(b): normalized PUND Pr after linear cycling beyond 1e6 cycles; only the 2 us pulse-width (EDC 4 %) series is digitized because it is the only one not dominated by leakage artefacts (the 5-50 us series scatter strongly and fail by 1e7).
+# Device/waveform: as in Lenox2023_Fig5a file (W/10 nm HZO/W, +/-2 MV/cm, 10 kHz, 2 us pulses, RT); PUND at 2.5 MV/cm.
+# Text: device with 2 us pulses failed at 2e8 cycles; leakage +50 % onset at ~1e8 cycles.
+# Panel (b) x-axis is logarithmic from 1e6 to 1e8 (ticks 1e6, 1e7, 1e8 with log minor ticks).
+# Type: digitized from figure, approx.
+# Digitizing uncertainty: +/-0.015 normalized Pr; x +/-0.05 decade; two points split by eye from a merged blob.
+# Axis calibration: x fit max residual 0.0148 (log10 units), y fit max residual 0.0014 (units); px/py are pixel coords in the native figure raster; crop offset (325, 75)
+series,cycles_digitized,cycles_nominal,Pr_norm_to_pristine,px,py,flag
+2us_EDC4pct,1.032e+06,,1.07,344.9,224.2,
+2us_EDC4pct,1.017e+07,,1.076,412.0,223.0,partly_hidden
+2us_EDC4pct,1.899e+07,,1.071,430.3,223.9,
+2us_EDC4pct,2.84e+07,,1.065,442.1,225.2,
+2us_EDC4pct,3.718e+07,,1.076,450.0,223.1,
+2us_EDC4pct,4.72e+07,,1.06,457.0,226.0,merged_blob_split_by_eye
+2us_EDC4pct,5.598e+07,,1.05,462.0,228.0,merged_blob_split_by_eye
+2us_EDC4pct,6.661e+07,,1.061,467.1,225.9,
+2us_EDC4pct,7.379e+07,,1.183,470.1,202.6,outlier_in_original
+2us_EDC4pct,7.954e+07,,1.032,472.3,231.4,
+2us_EDC4pct,9.117e+07,,1.058,476.3,226.5,
