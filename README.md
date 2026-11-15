@@ -8,9 +8,9 @@ A small, tested Python library of standard ferroelectric switching and hysteresi
 - a scalar **Preisach** model with first-order reversal curves (**FORC**)
 - **KAI / NLS / Merz** switching kinetics with fitting helpers
 - simulated **PUND** and triangular-wave P–E measurements, **leakage compensation** and loop-parameter extraction
-- a **dynamic multi-domain NLS** capacitor model (`fe_models.nls_multidomain`) and its Verilog-A version [`spice/fecap_nls.va`](spice/fecap_nls.va): finite-pulse switching, accumulation under repeated sub-coercive pulses without artificial drift under small symmetric signals, a state-dependent (butterfly) reversible response, imprint, optional back-switching with screening, leakage and temperature coefficients
+- a **dynamic multi-domain NLS** capacitor model (`fe_models.nls_multidomain`) and its Verilog-A version [`spice/fecap_nls.va`](spice/fecap_nls.va): finite-pulse switching, accumulation under repeated sub-coercive pulses without artificial drift under small symmetric signals, a state-dependent (butterfly) reversible response, imprint, optional back-switching with screening, leakage and temperature coefficients; plus optional cycling and storage history (wake-up, fatigue, logarithmic-time imprint, leakage growth with fatigue), all off by default
 
-The Landau, Preisach, kinetics and measurement modules use illustrative synthetic parameters. The multi-domain model uses a generic card built from published fits (every value with its source). No measured data of any device are included; comparisons with the literature use numbers taken from published papers ([`data/literature/`](data/literature/)).
+The Landau, Preisach, kinetics and measurement modules use illustrative synthetic parameters. The multi-domain model uses a generic card built from published fits (every value with its source), and one device card fitted to a published C–V and loop (`spice/params/mukherjee2023.inc`). No measured data of any device are included; comparisons with the literature use numbers taken from published papers ([`data/literature/`](data/literature/)).
 
 ## Figure gallery
 
@@ -45,6 +45,14 @@ The Landau, Preisach, kinetics and measurement modules use illustrative syntheti
 | ![Literature switching](docs/literature_switching.png) | ![Literature C-V](docs/literature_cv.png) |
 | **Read endurance (digitized)** | **Back-switching (digitized)** |
 | ![Literature read endurance](docs/literature_read_endurance.png) | ![Literature back-switching](docs/literature_backswitching.png) |
+
+**Cycling and storage history against published data** (see [Sections 4 and 7 of the derivation article](docs/model-derivation.md#4-cycling-and-storage-history-optional) and [`docs/research/`](docs/research/))
+
+| $2P_r$ and $2E_c$ during wake-up, five temperatures | Pulse-width dependence of wake-up |
+|---|---|
+| ![Wake-up 2Pr and 2Ec](docs/research/r2_wakeup_coercive.png) | ![Pulse width](docs/research/r2_pulse_width.png) |
+| **Read endurance: dynamic imprint against both states** | **Imprint versus time and temperature** |
+| ![Read endurance with imprint](docs/research/rir2_fits.png) | ![Imprint](docs/research/fi_imprint.png) |
 
 ## Install
 
@@ -153,9 +161,18 @@ The film is split into $N_d$ classes of domains (quantiles of a Dagum activation
 
 $$\bar x = \sum_k w_k s_k,\qquad R_k^{\pm} = \tau_0^{-1}\exp\left[-\left(V_{a,k}/|u_k|\right)^{\alpha}\right],\qquad \frac{\mathrm{d}s_k}{\mathrm{d}t} = \beta R_k^{+}(h_k^{+})^{\beta-1}(1 - s_k) - \beta R_k^{-}(h_k^{-})^{\beta-1}(1 + s_k),$$
 
-with $u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k$, a progress variable that grows with $R$, relaxes only near 0 V and is reset when the drive reverses, a two-branch reversible charge, a screening state $\sigma$ and leakage. Under a constant field it reduces to the single-pulse NLS form $f = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}$. The full equation set (E1–E12) and every parameter are in [spice/README.md](spice/README.md#equations); the reasoning behind each equation is in [docs/model-derivation.md](docs/model-derivation.md).
+with $u_k = \rho V - V_{dep}(\bar x - \sigma) - V_{imp} - \delta_k$, a progress variable that grows with $R$, relaxes only near 0 V and is reset when the drive reverses, a two-branch reversible charge, a screening state $\sigma$ and leakage. Under a constant field it reduces to the single-pulse NLS form $f = \sum_k w_k\{1 - \exp[-(R_k t)^\beta]\}$. The full equation set of the core model (E1–E12), the optional history terms (E13–E20) and every parameter are in [spice/README.md](spice/README.md#equations); the reasoning behind each equation is in [docs/model-derivation.md](docs/model-derivation.md).
 
 Main functions: `generic_card(**overrides)`, `simulate(p, v_of_t, t_end, s0, breaks=...)` (Radau), `switched_fraction`, `train_fraction`, `bipolar_pairs`, `pund`, `repeat_waveform`, `step` (closed-form constant-voltage update), `march` (fixed-grid θ-method), `q_rev`, `q_term`, `j_leak`, `rhs`, `pwl`, `spice_model_card`.
+
+**Cycling and storage history (optional, off by default).** Fatigue is not written as "smaller $P_s$": pinned domains go into a pool that keeps their polarization and reversible charge, so a stored state does not lose charge as fatigue grows (E13). On top of that:
+
+- wake-up driven by the amount of switching, with the disappearance of a pristine bias split (E14);
+- a reversible pool, depinned under field and re-pinned at each reversal, that explains the pulse-width dependence of wake-up (E18);
+- fatigue with two drivers (E15), a build-up time of the fatigue stress (E19) and leakage growing with fatigue (E20);
+- imprint from 12 trapping states with logarithmically spaced time constants (E17), with branch asymmetry (E17a) and field acceleration (E17b).
+
+Related functions: `cycle_history` (10¹² cycles in about 0.1 s; the result can be handed to SPICE through `nw0`, `af0`, `si0`, `zq0`), `loop_figures` (reads $P_r$ and $E_c$ the way the experiment does), `aged_card`; read sequences are in `fe_models.read_disturb`. Why each term is written this way, and how it compares with published data: Sections 4 and 7 of the derivation article.
 
 ### `fe_models.units`
 
@@ -163,7 +180,7 @@ Constants and conversions (1 µC/cm² = 10⁻² C/m², 1 MV/cm = 10⁸ V/m) and 
 
 ## SPICE model (Verilog-A)
 
-[`spice/fecap_nls.va`](spice/fecap_nls.va) (module `fecap_nls`) implements the same equations as `fe_models.nls_multidomain`. Terminals `p`, `n` and a monitor output `qm` whose voltage is the terminal charge density in µC/cm²; instance parameters `s0`, `area`, `sg0`; 16 domain classes by default (`-D FE_ND=64` for more).
+[`spice/fecap_nls.va`](spice/fecap_nls.va) (module `fecap_nls`) implements the same equations as `fe_models.nls_multidomain`. Terminals `p`, `n` and a monitor output `qm` whose voltage is the terminal charge density in µC/cm²; instance parameters `s0`, `area`, `sg0`, plus `nw0`, `af0`, `si0`, `zq0` for a prior history; 16 domain classes by default (`-D FE_ND=64` for more).
 
 ```bash
 python spice/build_osdi.py                        # needs OPENVAF (and on Windows LLD + MINGW_LIBDIR)
@@ -178,7 +195,7 @@ pre_osdi build/fecap_nls.osdi
 ...
 ```
 
-**Status.** Compiled with OpenVAF-Reloaded 24.0.2 and run in ngspice 47 (Windows). Twelve testbenches — PUND, triangular P–V loops at three frequencies, minor loops, switched fraction versus pulse width and amplitude, 1000 cycles of ±0.3 V, slow accumulation at ±0.8 V, low-pass reversible response, back-switching, 85 °C with temperature coefficients, leakage I–V — agree with the Python reference (switched fraction within 2×10⁻⁴, charges within 0.01 µC/cm², coercive voltages within 6.4 mV, no drift above 10⁻¹³ after 1000 small-signal cycles). The real simulator required one change: the initial-state condition now also tests `$abstime`, because ngspice's OSDI interface does not report `analysis("static")` at the transient operating point. HSPICE and Spectre were **not** tested. Full documentation — equations, parameter table with sources, numerical notes, verification table, comparison with published data, limitations: **[spice/README.md](spice/README.md)**. How the model was derived: [docs/model-derivation.md](docs/model-derivation.md) · [繁體中文](docs/model-derivation.zh-TW.md).
+**Status.** Compiled with OpenVAF-Reloaded 24.0.2 and run in ngspice 47 (Windows). Twelve testbenches — PUND, triangular P–V loops at three frequencies, minor loops, switched fraction versus pulse width and amplitude, 1000 cycles of ±0.3 V, slow accumulation at ±0.8 V, low-pass reversible response, back-switching, 85 °C with temperature coefficients, leakage I–V — agree with the Python reference (switched fraction within 2×10⁻⁴, charges within 0.01 µC/cm², coercive voltages within 6.4 mV, no drift above 10⁻¹³ after 1000 small-signal cycles). The real simulator required one change: the initial-state condition now also tests `$abstime`, because ngspice's OSDI interface does not report `analysis("static")` at the transient operating point. The history terms added later have seven more testbenches (wake-up, fatigue, imprint, starting from an existing history, depinning, stress build-up with leakage, and the two imprint extensions); all 92 checks in the 19 testbenches pass, with charges within 0.042 µC/cm². HSPICE and Spectre were **not** tested. Full documentation — equations, parameter table with sources, numerical notes, verification table, comparison with published data, limitations: **[spice/README.md](spice/README.md)**. How the model was derived: [docs/model-derivation.md](docs/model-derivation.md) · [繁體中文](docs/model-derivation.zh-TW.md).
 
 ## Project structure
 
@@ -189,11 +206,13 @@ ferroelectric-models/
 │   ├── preisach.py          Preisach model, FORC
 │   ├── kinetics.py          KAI, NLS, Merz, fitting
 │   ├── measurement.py       PUND, P-E loops, leakage compensation
-│   ├── nls_multidomain.py   dynamic multi-domain NLS (Python reference of the Verilog-A model)
+│   ├── nls_multidomain.py   dynamic multi-domain NLS (Python reference of the Verilog-A model) and history terms
+│   ├── read_disturb.py      read sequences (up to 10^11 reads) and loop calibration
 │   └── units.py             constants, unit conversions
 ├── spice/
 │   ├── fecap_nls.va         Verilog-A model
 │   ├── params/generic.inc   generic parameter card with sources
+│   ├── params/mukherjee2023.inc  C–V and loop fit of a published device
 │   ├── tests/*.cir          ngspice testbenches
 │   ├── build_osdi.py        compile with OpenVAF (and link with lld on Windows)
 │   ├── compare_ngspice.py   run the testbenches, compare with Python
@@ -201,6 +220,7 @@ ferroelectric-models/
 ├── data/literature/         values from published papers (CSV with citation headers)
 ├── examples/                one script per figure; make_all_figures.py runs them all
 ├── docs/                    figures, model-derivation.md, model-derivation.zh-TW.md
+│   └── research/            research notes (English and Chinese): read disturb, wake-up and fatigue, imprint
 └── tests/                   unittest suites
 ```
 
@@ -214,11 +234,11 @@ PYTHONPATH=src python -m unittest discover -s tests
 
 (Windows PowerShell: `$env:PYTHONPATH="src"; python -m unittest discover -s tests`)
 
-Without ngspice this runs 76 tests (one test class skipped) in about 20 s. With ngspice and the compiled model available (`NGSPICE`, and `OPENVAF` or an existing `spice/build/fecap_nls.osdi`), the skipped class runs all twelve testbenches as well: 79 tests in about 75 s.
+Without ngspice this runs 148 tests (two test classes skipped). With ngspice and the compiled model available (`NGSPICE`, and `OPENVAF` or an existing `spice/build/fecap_nls.osdi`), the skipped classes run all 19 testbenches and the loop of the device card as well: 153 tests in about 12 minutes.
 
 The original 43 tests cover: analytic helpers vs. numerical $P_r$, $E_c$; slow LK sweeps approach the static $E_c$ and fast sweeps widen it; Preisach symmetry, saturation at $\pm P_s$, minor loops inside the major loop, return-point memory and wiping-out; the FORC distribution recovers the hysteron distribution; KAI equals $1 - 1/e$ at $t_0$; a narrow NLS reduces to KAI; fits recover parameters with a fixed random seed; a linear capacitor gives zero PUND switching charge; leakage compensation recovers the leak-free loop; $E_c$, $P_r$ and imprint of a shifted loop.
 
-The 33 tests of `test_nls_multidomain.py` cover the multi-domain model: grid weights and ordering; one-directional rates; bounded states; reduction to the single-pulse NLS form (ODE vs. closed form within 2×10⁻⁴) and to the continuous NLS integral; closed forms vs. ODE for pulse trains, PUND and bipolar cycles; step-size convergence; no drift for ±26 mV and ±0.3 V over 10⁶ cycles; genuine accumulation converging with $N_d$; butterfly branches and the $f_{rev}$ split; passivity; charge conservation in a series-resistor circuit; three deliberately broken model versions that the checks must catch; and consistency of the Verilog-A defaults, the parameter card and the testbenches with the Python module.
+The 34 tests of `test_nls_multidomain.py` cover the multi-domain model: grid weights and ordering; one-directional rates; bounded states; reduction to the single-pulse NLS form (ODE vs. closed form within 2×10⁻⁴) and to the continuous NLS integral; closed forms vs. ODE for pulse trains, PUND and bipolar cycles; step-size convergence; no drift for ±26 mV and ±0.3 V over 10⁶ cycles; genuine accumulation converging with $N_d$; butterfly branches and the $f_{rev}$ split; passivity; charge conservation in a series-resistor circuit; three deliberately broken model versions that the checks must catch; the closed-form `step()` across a sub-threshold reversal; and consistency of the Verilog-A defaults, the parameter card and the testbenches with the Python module. The history terms are covered by `test_history.py` (23 tests), `test_cycling_r2.py` (18), `test_read_disturb.py` (13), `test_read_imprint_r2.py` (13) and `test_card_mukherjee.py` (6): bit-for-bit unchanged when off, terminal charge constant at fixed bias while damage grows, the log slope of imprint, cycle averaging against direct integration, passivity with every term on, and more.
 
 ## Limitations
 
@@ -227,8 +247,8 @@ The 33 tests of `test_nls_multidomain.py` cover the multi-domain model: grid wei
 - **The Landau $E_c$ is the intrinsic coercive field** (where the metastable minimum disappears). Here it is a parameter that sets the loop width, not a prediction of the coercive field of real films; the LK viscosity $\rho$ is phenomenological.
 - **KAI, NLS (and similar models) and the Merz law assume a constant applied field during switching** (a field step that is then held). Fitting them to data taken under ramped or triangular fields (for example the switching current of a P–E loop) is outside the assumptions of the models. The multi-domain model removes this restriction by integrating the rates along the waveform.
 - The Preisach model is rate independent; the two-frequency leakage compensation relies on that and, for real films, the two frequencies should be close.
-- The wake-up / fatigue functions are curve shapes only (phenomenological), not a mechanism.
-- **Multi-domain model:** no wake-up or fatigue, no logarithmic-time imprint, mean-field only (no single-grain stochastics), rates below about 0.8 V and switching faster than 200 ns are extrapolations of the cited data, temperature coefficients are placeholders, and HSPICE / Spectre were not tested. Comparisons with published read-endurance data show that the low-field tail and $\tau_0$ must be measured on the device of interest. Full list: [spice/README.md](spice/README.md#limitations).
+- The wake-up / fatigue functions of `measurement` are curve shapes only (phenomenological), not a mechanism; the mechanistic version is the history terms of the multi-domain model.
+- **Multi-domain model:** the history terms have no fatigue recovery or breakdown and miss the early steep leakage rise; the drop after 10⁸ reads has two explanations the data cannot separate; mean-field only (no single-grain stochastics), rates below about 0.8 V and switching faster than 200 ns are extrapolations of the cited data, temperature coefficients are placeholders, and HSPICE / Spectre were not tested. Comparisons with published read-endurance data show that sub-coercive read disturb depends on the distribution, the kinetics and the imprint built up between write and read, and must be measured on the device of interest. Full list: [spice/README.md](spice/README.md#limitations).
 
 ## Related work
 
@@ -247,7 +267,7 @@ The Python package Ferro by JAnderson419 ([PyPI `ferro`](https://pypi.org/projec
 - W. J. Merz, Phys. Rev. 95, 690 (1954).
 - T. S. Böscke et al., Appl. Phys. Lett. 99, 102903 (2011) — ferroelectricity in HfO₂ thin films.
 - Alessandri et al., IEEE Electron Device Lett. 39, 1780 (2018); Alessandri, Pandey, Seabaugh, IEDM 2018; Alessandri et al., IEEE Trans. Electron Devices 66, 3527 (2019) — the dynamic NLS model and the switching parameters of the generic card.
-- Further references of the multi-domain model (C–V, leakage, back-switching, read endurance): [spice/README.md](spice/README.md#references).
+- Further references of the multi-domain model (C–V, leakage, back-switching, read endurance, wake-up, fatigue, imprint): [spice/README.md](spice/README.md#references).
 
 ## License
 
