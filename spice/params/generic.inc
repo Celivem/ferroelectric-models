@@ -137,3 +137,7 @@
 * ^ [1] depth of the logit quantile grid (smallest q about 1.2e-4). Source: numerical
 + grid_a=1.5
 * ^ [1] sinh stretching of the quantile grid. Source: numerical
++ imp_kw=0
+* ^ [1] branch asymmetry of the imprint: the switching field out of the imprinted state moves by (1 + kappa_I) V_I |sigma_I|, the other one by (1 - kappa_I) V_I |sigma_I|. Source: off by default; 0.2-0.3 from the branch coercive voltages of [Buragohain2019] Figs. 2a,b
++ imp_va=0
+* ^ [V] field acceleration of the imprint states, rate x cosh(rho V / V_a) (0 = off). Source: off by default; write-time ('fluid') imprint of [Buragohain2019] Fig. 3b

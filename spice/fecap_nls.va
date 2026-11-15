@@ -151,13 +151,17 @@ parameter real y_max = 9.0 from (0:inf);       // depth of the logit quantile gr
 parameter real grid_a = 1.5 from (0:inf);      // sinh stretching of the quantile grid [1]
 parameter real bnd = 0.1 from (0:inf);         // max state change per time step used by $bound_step [1]
 
+// ------------------------- imprint dynamics, round 2 (E17a, E17b; off by default)
+parameter real imp_kw = 0.0;                   // branch asymmetry kappa_I: switching fields move outward by kappa_I V_I |sigma_I| [1]
+parameter real imp_va = 0.0 from [0:inf);      // field acceleration of the imprint rates, x cosh(rho V / V_a) (0 = off) [V]
+
 genvar i;
 real kst, ux, v, tk, dtk, vth, vth0, te, tau, ptc, kc, zmin, relax, zv, x, sg, yv, rm;
 real yl, yh, ql, qh, qm_k, vp, vn, dl, phi, u, rp, rn, s, h, hu, hd, cu, cd, ru, rd, ds, dh;
 real gp, gm_, rev;
 real enw, enf, eni, aw, af, piv, gw, dgw, uw, gf, dgf, ef, dmg, ddm, fw, fpn, dfaw, dfaf, sI, vimpe, me, xt;
 real act, daw, daf, efl, fdot, fpin, frel, ratio, sgn, tauj, ar_i, vie, t2, fff, rtf, rns;
-real gu, gd, guy, gdy, gb, gmm, qt;
+real gu, gd, guy, gdy, gb, gmm, qt, wi, gacc, vse;
 real es, eroot, ar, jl, spf, phit, js, phib, jt, et;
 
 analog begin
@@ -208,6 +212,11 @@ analog begin
     for (i = 1; i <= `FE_NI; i = i + 1) sI = sI + V(imn[i]);
     sI = eni * sI / `FE_NI;
     vimpe = vimp - imp_v * sI;                   // dynamic imprint voltage (E17)
+    // (E17a) both switching fields move outward by w = kappa_I V_I (sqrt(sI^2 + 1e-6) - 1e-3)
+    wi = eni * imp_kw * imp_v * (sqrt(sI * sI + 1.0e-6) - 1.0e-3);
+    // (E17b) field acceleration of the imprint rates, cosh(rho V / V_a) (argument capped at 80)
+    gacc = 1.0;
+    if (imp_va > 0.0) gacc = cosh(min(abs(rho * v) / imp_va, 80.0));
     me = 1.0 + fat_ke * dmg;
 
     // rate cut-off: exp(-z^-alpha) < exp(-60) is treated as exactly 0
@@ -264,8 +273,8 @@ analog begin
         // (E2) one-directional Merz-type rates R+ (u > 0) and R- (u < 0)
         rp = 0.0;
         rn = 0.0;
-        if (u > vp * zmin) rp = exp(-pow(vp / u, alpha)) / tau;
-        if (-u > vn * zmin) rn = exp(-pow(-vn / u, alpha)) / tau;
+        if (u - wi > vp * zmin) rp = exp(-pow(vp / (u - wi), alpha)) / tau;
+        if (-u - wi > vn * zmin) rn = exp(-pow(vn / (-u - wi), alpha)) / tau;
         s = V(sn[i]);
         h = V(hn[i]);
         hu = max(h, 0.0);
@@ -325,9 +334,9 @@ analog begin
     ar_i = exp(imp_ea / `FE_KQ * (1.0 / tk - 1.0 / t0));
     for (i = 1; i <= `FE_NI; i = i + 1) begin
         tauj = exp(ln(imp_t1) + (i - 0.5) * (ln(imp_t2) - ln(imp_t1)) / `FE_NI) * ar_i;
-        rm = max(rm, eni * abs(xt - V(imn[i])) / tauj);
+        rm = max(rm, eni * gacc * abs(xt - V(imn[i])) / tauj);
         I(imn[i]) <+ `FE_TC * (ddt(V(imn[i])) + kst * 1.0e3 * (V(imn[i]) - eni * si0)
-            - (1.0 - kst) * eni * (xt - V(imn[i])) / tauj);
+            - (1.0 - kst) * eni * gacc * (xt - V(imn[i])) / tauj);
     end
     if (rm > 1.0) $bound_step(bnd / rm);
 
@@ -339,11 +348,13 @@ analog begin
     // up-polarized domains follow g_up (peak at V_i - V_s), down-polarized ones
     // g_dn (peak at V_i + V_s).  Summed over classes this is gbar + x g_d.
     // the imprint bias moves both branches with the switching fields (E17)
+    // and (E17a) their peaks move outward with the switching fields
     vie = vi - imp_v * sI / rho;
-    gu = dcap * vw * (atan((v - vie + vs) / vw) - atan((-vie + vs) / vw));
-    gd = dcap * vw * (atan((v - vie - vs) / vw) - atan((-vie - vs) / vw));
-    guy = dcap * vw * (atan((yv - vie + vs) / vw) - atan((-vie + vs) / vw));
-    gdy = dcap * vw * (atan((yv - vie - vs) / vw) - atan((-vie - vs) / vw));
+    vse = vs + wi / rho;
+    gu = dcap * vw * (atan((v - vie + vse) / vw) - atan((-vie + vse) / vw));
+    gd = dcap * vw * (atan((v - vie - vse) / vw) - atan((-vie - vse) / vw));
+    guy = dcap * vw * (atan((yv - vie + vse) / vw) - atan((-vie + vse) / vw));
+    gdy = dcap * vw * (atan((yv - vie - vse) / vw) - atan((-vie - vse) / vw));
     // term (2) is split as a whole into an instantaneous part (frev) and a
     // low-pass part (1 - frev): both have positive capacitance -> passive
     gb = frev * (gu + gd) + (1.0 - frev) * (guy + gdy);

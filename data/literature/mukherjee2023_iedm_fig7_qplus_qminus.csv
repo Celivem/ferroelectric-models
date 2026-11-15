@@ -1,0 +1,40 @@
+# Mukherjee et al., IEDM 2023, doi:10.1109/IEDM45741.2023.10413879, Fig. 7(b)-(d): |Q+| and |Q-| vs read cycle
+# Device: TiN/MoOx 2 nm/La:HZO 9 nm/Nb2O5 2 nm/TiN, A_FE = 60 x 80 um^2, woken up (1e5 cycles, 3.5 MV/cm);
+#   written once at 3 MV/cm, then read n times without rewrite; trapezoidal reads t_R = t_F = t_PW = 500 ns at V_R
+#   (nominal; the panels say 'V_R ~ -100/-300/-500 mV'). Charge integrated over rise + plateau.
+# Type: digitized from figure, approx. Values are the median of all red (|Q+|) / blue (|Q-|) pixels (markers and the
+#   authors' trend line) in 0.25-decade bins of n, read at the bin containing n (n = 1: bin 1-1.8). Axes calibrated on
+#   the grid lines (log n: 10^0..10^12; |Q|: 12-18, 40-55, 60-80 pC). Uncertainty: +-0.15 pC (-0.1 V), +-0.4 pC (-0.3 V),
+#   +-1.5 pC (-0.5 V, large marker scatter, +-3 pC per point). The CMW of the same figure is in
+#   mukherjee2023_iedm_read_endurance.csv (Fig. 7e). The -0.3 V row at n = 1e11 is the last bin with data
+#   (n about 7e10); the -0.5 V data end near n = 3e10.
+V_R,n_reads,Q_plus_pC,Q_minus_pC
+-0.1,1,17.35,13.08
+-0.1,12,17.36,13.29
+-0.1,100,17.23,13.29
+-0.1,1000,17.23,13.25
+-0.1,10000,17.21,13.27
+-0.1,1e+06,17.19,13.27
+-0.1,1e+08,16.94,13.12
+-0.1,1e+09,16.95,13.00
+-0.1,1e+10,16.50,12.94
+-0.1,1e+11,16.11,12.50
+-0.3,1,53.84,42.04
+-0.3,12,53.10,41.73
+-0.3,100,52.82,41.53
+-0.3,1000,52.63,41.53
+-0.3,10000,52.43,41.37
+-0.3,1e+06,52.24,41.22
+-0.3,1e+08,51.80,40.75
+-0.3,1e+09,50.86,40.16
+-0.3,1e+10,49.49,39.22
+-0.3,1e+11,48.27,38.78
+-0.5,1,82.80,60.43
+-0.5,12,78.53,60.60
+-0.5,100,77.20,60.93
+-0.5,1000,76.73,60.93
+-0.5,10000,76.80,60.40
+-0.5,1e+06,76.73,61.47
+-0.5,1e+08,74.60,60.20
+-0.5,1e+09,72.53,59.40
+-0.5,1e+10,69.60,58.73

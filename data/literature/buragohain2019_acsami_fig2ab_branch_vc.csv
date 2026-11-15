@@ -1,0 +1,21 @@
+# Buragohain P. et al., "Fluid Imprint and Inertial Switching in Ferroelectric La:HfO2 Capacitors", ACS Appl. Mater.
+#   Interfaces 11, 35115 (2019), DOI 10.1021/acsami.9b11146, TU Dresden postprint p.4 (printed p.3),
+#   Fig. 2(a) [after (+6 V, 5 ms) set -> Pdown] and Fig. 2(b) [after (-6 V, 5 ms) set -> Pup]: P-V loops measured
+#   after delay t_d = 10 us, 1 min, 1 h, 24 h. Same device/conditions as the Fig. 2c CSV (90 um capacitors,
+#   IrOx/La:HfO2 20 nm/IrOx, wake-up 1e5 cycles, 100 erase cycles +-7 V 50 us before each measurement, RT,
+#   100 us triangular read wave).
+# Quantity: coercive voltages Vc- and Vc+ at P = 0 (crossing of each coloured loop with the P=0 line; average of
+#   rows 3-7 px above and below the black zero line), branch-resolved. Vshift = (Vc+ + Vc-)/2.
+# Colour key from the legend: black 10 us, red 1 min, blue 1 h, green 24 h.
+# Branch roles: for the Pdown state (written by +6 V) the switching OUT of the stored state is the Vc- branch, for
+#   Pup the Vc+ branch (the other branch switches the state just written by the read wave back).
+# Type: digitized from figure, approx. Uncertainty: +-0.1 V (line width ~4 px at 18.5 px/V; overlapping curves).
+panel,t_delay_s,Vc_minus_V,Vc_plus_V,Vshift_V,px_x_neg,px_x_pos
+a_set+6V_Pdown,1e-05,-2.62,2.65,0.01,531.5,629.0
+a_set+6V_Pdown,60,-3.58,2.04,-0.77,513.7,617.8
+a_set+6V_Pdown,3.6e+03,-4.22,1.62,-1.30,501.9,609.9
+a_set+6V_Pdown,8.64e+04,-4.72,1.26,-1.73,492.8,603.4
+b_set-6V_Pup,1e-05,-2.48,2.70,0.11,965.0,1060.9
+b_set-6V_Pup,60,-2.06,3.56,0.75,973.0,1076.8
+b_set-6V_Pup,3.6e+03,-1.47,4.20,1.37,983.8,1088.8
+b_set-6V_Pup,8.64e+04,-1.07,4.67,1.80,991.2,1097.4

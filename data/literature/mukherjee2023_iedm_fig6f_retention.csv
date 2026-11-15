@@ -1,0 +1,13 @@
+# Mukherjee et al., IEDM 2023, doi:10.1109/IEDM45741.2023.10413879, Fig. 6(f): pulse-based retention of |Q+| and |Q-|
+# Device: as in mukherjee2023_iedm_cv.csv (woken up, 1e5 cycles at 3.5 MV/cm); written once, stored at 0 V, 25 C,
+#   read at the retention times below with single trapezoidal pulses t_R = t_F = 500 ns, t_PW = 1 us, V_R = -100 mV
+#   (note: t_PW differs from the 500 ns of Fig. 7).
+# Type: digitized from figure, approx. Each row is the median of all red/blue pixels (several markers per time plus
+#   the authors' fit line) in a window of +-0.2 decade around the marker cluster; t is the cluster centre.
+#   Axes calibrated on the grid lines (t: 10^0..10^8 s; |Q|: 12, 15, 18 pC). Uncertainty +-0.1 decade, +-0.15 pC;
+#   the spread of the markers within a cluster is up to +-0.5 pC.
+t_s,Q_plus_pC,Q_minus_pC
+10,17.93,13.56
+3.2e3,16.78,13.15
+1.0e4,16.89,13.09
+4.5e4,16.62,12.99
